@@ -358,9 +358,9 @@ export default function App() {
       setFrozenNot((fn) => ({ ...fn, [winner]: true }))
       setFrozenFundedZero((ff) => {
         const next = { ...ff } as Record<ProjectId, boolean>
-        ;(Object.keys(ff) as ProjectId[]).forEach((pid) => {
-          if (pid !== winner) next[pid] = true
-        })
+          ; (Object.keys(ff) as ProjectId[]).forEach((pid) => {
+            if (pid !== winner) next[pid] = true
+          })
         return next
       })
       const t = nowTs()
@@ -376,14 +376,14 @@ export default function App() {
     if (!activeAccount.isAdmin || !resolution) return
     const { winner, values } = resolution
     const filled: Record<ProjectId, { funded?: number; not_funded?: number }> = { ascoe: {}, civichat: {}, handbook: {}, yadokari: {} }
-    ;(Object.keys(values) as ProjectId[]).forEach((pid) => {
-      filled[pid] = { ...values[pid] }
-      if (pid === winner) {
-        if (filled[pid].funded == null) filled[pid].funded = 5000
-      } else {
-        if (filled[pid].not_funded == null) filled[pid].not_funded = 5000
-      }
-    })
+      ; (Object.keys(values) as ProjectId[]).forEach((pid) => {
+        filled[pid] = { ...values[pid] }
+        if (pid === winner) {
+          if (filled[pid].funded == null) filled[pid].funded = 5000
+        } else {
+          if (filled[pid].not_funded == null) filled[pid].not_funded = 5000
+        }
+      })
     const t = nowTs()
     setPhase('resolved')
     setPhaseMarkers((m) => [...m, { t, label: 'Resolution' }])
@@ -397,35 +397,35 @@ export default function App() {
       let bal = a.balance
       const newHold = JSON.parse(JSON.stringify(a.holdings)) as Holdings
       const newBase = JSON.parse(JSON.stringify(a.base)) as BaseHoldings
-      ;(Object.keys(newHold) as ProjectId[]).forEach((pid) => {
-        const prj = projects.find((p) => p.id === pid)!
-        const min = prj.rangeMin, max = prj.rangeMax
-        const vFundedAbs = pid === winner ? (values[pid].funded ?? 5000) : undefined
-        const vNotAbs = pid !== winner ? (values[pid].not_funded ?? 5000) : undefined
-        ;(['funded', 'not_funded'] as Scenario[]).forEach((sc) => {
-          const outcomeAbs = sc === 'funded' ? vFundedAbs : vNotAbs
-          if (outcomeAbs == null) return
-          const v = clamp01((outcomeAbs - min) / (max - min))
-          ;(['UP', 'DOWN'] as Side[]).forEach((sd) => {
-            const q = newHold[pid][sc][sd]
-            if (q > 0) {
-              const payout = (sd === 'UP' ? v : 1 - v) * q
-              bal += payout
-              newHold[pid][sc][sd] = 0
-            }
-          })
+        ; (Object.keys(newHold) as ProjectId[]).forEach((pid) => {
+          const prj = projects.find((p) => p.id === pid)!
+          const min = prj.rangeMin, max = prj.rangeMax
+          const vFundedAbs = pid === winner ? (values[pid].funded ?? 5000) : undefined
+          const vNotAbs = pid !== winner ? (values[pid].not_funded ?? 5000) : undefined
+            ; (['funded', 'not_funded'] as Scenario[]).forEach((sc) => {
+              const outcomeAbs = sc === 'funded' ? vFundedAbs : vNotAbs
+              if (outcomeAbs == null) return
+              const v = clamp01((outcomeAbs - min) / (max - min))
+                ; (['UP', 'DOWN'] as Side[]).forEach((sd) => {
+                  const q = newHold[pid][sc][sd]
+                  if (q > 0) {
+                    const payout = (sd === 'UP' ? v : 1 - v) * q
+                    bal += payout
+                    newHold[pid][sc][sd] = 0
+                  }
+                })
+            })
+          // Base payout: winner の Funded=1 or loser の Not Funded=1
+          if (pid === winner) {
+            if (newBase[pid].funded > 0) { bal += newBase[pid].funded; newBase[pid].funded = 0 }
+            // NotFunded は 0
+            newBase[pid].not_funded = 0
+          } else {
+            if (newBase[pid].not_funded > 0) { bal += newBase[pid].not_funded; newBase[pid].not_funded = 0 }
+            // Funded は 0
+            newBase[pid].funded = 0
+          }
         })
-        // Base payout: winner の Funded=1 or loser の Not Funded=1
-        if (pid === winner) {
-          if (newBase[pid].funded > 0) { bal += newBase[pid].funded; newBase[pid].funded = 0 }
-          // NotFunded は 0
-          newBase[pid].not_funded = 0
-        } else {
-          if (newBase[pid].not_funded > 0) { bal += newBase[pid].not_funded; newBase[pid].not_funded = 0 }
-          // Funded は 0
-          newBase[pid].funded = 0
-        }
-      })
       return { ...a, balance: bal, holdings: newHold, base: newBase }
     }))
   }
@@ -468,7 +468,7 @@ export default function App() {
             <span className="text-xs text-gray-600">アカウント</span>
             <select className="h-8 border rounded px-2 text-xs" value={activeAccountId} onChange={(e) => setActiveAccountId(e.target.value)}>
               {accounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}{a.isAdmin ? ' (admin)' : ''}</option>
+                <option key={a.id} value={a.id}>{a.name}{a.isAdmin ? ' 管理者' : ''}</option>
               ))}
             </select>
             {activeAccount.isAdmin && (
@@ -480,268 +480,268 @@ export default function App() {
       </div>
       <div className="p-6 md:p-8">
         <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div className="md:col-span-3 space-y-8">
-          <header className="space-y-2">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl font-bold">それぞれの社会保障制度の診断プロジェクトに1億円を投資した場合、各プロジェクトの申請数を予測する。</h1>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                予測対象は「申請数（絶対値）」、評価は「予測インパクト＝Funded − Not Funded」。市場開始から約1週間後にインパクト最大のプロジェクトへ1億円を分配し、分配から1カ月後の実測で清算します。
-              </p>
-              {selectedProject && (
-                <Button variant="outline" onClick={() => setSelectedProject(null)}>全体を見る</Button>
-              )}
-            </div>
-          </header>
-
-          {activeAccount.isAdmin && (
-            <Card className="shadow ring-2 ring-amber-300 border-amber-300 bg-amber-50">
-              <CardContent className="p-3 space-y-3">
-                <div className="text-[11px] text-amber-900 bg-amber-100 border border-amber-300 rounded px-2 py-1 inline-flex items-center gap-1">
-                  <span>🔒</span>
-                  <span>管理者専用</span>
-                </div>
-                {phase === 'open' && (
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div className="text-sm font-medium">指定時点の Impact 最大プロジェクトを確定（Winner→Not funded = 0 / Others→Funded = 0）</div>
-                    <div className="flex items-center gap-2">
-                      <select className="h-9 border rounded px-2 text-sm" value={String(adminIdx)} onChange={(e) => setAdminIdx(Number(e.target.value))}>
-                        <option value="-1">現在（最新）</option>
-                        {adminOptions.map((o) => (<option key={o.idx} value={o.idx}>{o.label}</option>))}
-                      </select>
-                      <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => adminFixAtIndex(adminIdx)}>Forcasted Impactが最大なものに助成を確定</Button>
-                    </div>
-                  </div>
+          <div className="md:col-span-3 space-y-8">
+            <header className="space-y-2">
+              <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-bold">それぞれの社会保障制度の診断プロジェクトに1億円を投資した場合、各プロジェクトの申請数を予測する。</h1>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  予測対象は「申請数（絶対値）」、評価は「予測インパクト＝Funded − Not Funded」。市場開始から約1週間後にインパクト最大のプロジェクトへ1億円を分配し、分配から1カ月後の実測で清算します。
+                </p>
+                {selectedProject && (
+                  <Button variant="outline" onClick={() => setSelectedProject(null)}>全体を見る</Button>
                 )}
-                {phase === 'decided' && (
-                  <div className="space-y-2">
-                    <div className="font-medium">解決・精算</div>
-                    <div className="text-xs text-gray-600">各プロジェクトの最終結果（絶対値）を入力してください。</div>
-                    <div className="space-y-2">
-                      {(Object.keys(resolutionForm) as ProjectId[]).map((pid) => (
-                        <div key={pid} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-                          <div className="text-sm">{projects.find(p => p.id === pid)?.name}</div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600">Funded</span>
-                            <Input type="number" className="w-28" value={resolutionForm[pid].funded ?? ''}
-                              onChange={(e) => setResolutionForm((f) => ({ ...f, [pid]: { ...f[pid], funded: e.target.value === '' ? undefined : Number(e.target.value) } }))} />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600">Not Funded</span>
-                            <Input type="number" className="w-28" value={resolutionForm[pid].not_funded ?? ''}
-                              onChange={(e) => setResolutionForm((f) => ({ ...f, [pid]: { ...f[pid], not_funded: e.target.value === '' ? undefined : Number(e.target.value) } }))} />
-                          </div>
-                        </div>
-                      ))}
+              </div>
+            </header>
+
+            {activeAccount.isAdmin && (
+              <Card className="shadow ring-2 ring-amber-300 border-amber-300 bg-amber-50">
+                <CardContent className="p-3 space-y-3">
+                  <div className="text-[11px] text-amber-900 bg-amber-100 border border-amber-300 rounded px-2 py-1 inline-flex items-center gap-1">
+                    <span>🔒</span>
+                    <span>管理者専用</span>
+                  </div>
+                  {phase === 'open' && (
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                      <div className="text-sm font-medium">指定時点の Impact 最大プロジェクトを確定（Winner→Not funded = 0 / Others→Funded = 0）</div>
+                      <div className="flex items-center gap-2">
+                        <select className="h-9 border rounded px-2 text-sm" value={String(adminIdx)} onChange={(e) => setAdminIdx(Number(e.target.value))}>
+                          <option value="-1">現在（最新）</option>
+                          {adminOptions.map((o) => (<option key={o.idx} value={o.idx}>{o.label}</option>))}
+                        </select>
+                        <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => adminFixAtIndex(adminIdx)}>Forcasted Impactが最大なものに助成を確定</Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 pt-1">
-                      <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => {
-                        const t = nowTs()
-                        setPhase('resolved')
-                        setPhaseMarkers((m) => [...m, { t, label: 'Resolution' }])
-                        if (resolution) setResolution({ winner: resolution.winner, values: resolutionForm })
-                      }}>解決にする（数値を適用）</Button>
+                  )}
+                  {phase === 'decided' && (
+                    <div className="space-y-2">
+                      <div className="font-medium">解決・精算</div>
+                      <div className="text-xs text-gray-600">各プロジェクトの最終結果（絶対値）を入力してください。</div>
+                      <div className="space-y-2">
+                        {(Object.keys(resolutionForm) as ProjectId[]).map((pid) => (
+                          <div key={pid} className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+                            <div className="text-sm">{projects.find(p => p.id === pid)?.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600">Funded</span>
+                              <Input type="number" className="w-28" value={resolutionForm[pid].funded ?? ''}
+                                onChange={(e) => setResolutionForm((f) => ({ ...f, [pid]: { ...f[pid], funded: e.target.value === '' ? undefined : Number(e.target.value) } }))} />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600">Not Funded</span>
+                              <Input type="number" className="w-28" value={resolutionForm[pid].not_funded ?? ''}
+                                onChange={(e) => setResolutionForm((f) => ({ ...f, [pid]: { ...f[pid], not_funded: e.target.value === '' ? undefined : Number(e.target.value) } }))} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => {
+                          const t = nowTs()
+                          setPhase('resolved')
+                          setPhaseMarkers((m) => [...m, { t, label: 'Resolution' }])
+                          if (resolution) setResolution({ winner: resolution.winner, values: resolutionForm })
+                        }}>解決にする（数値を適用）</Button>
+                        <Button variant="outline" className="border-amber-300 text-amber-900" onClick={redeemAll}>全員 Redeem</Button>
+                      </div>
+                    </div>
+                  )}
+                  {phase === 'resolved' && (
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-green-700">解決済みです。Redeem を実行できます。</div>
                       <Button variant="outline" className="border-amber-300 text-amber-900" onClick={redeemAll}>全員 Redeem</Button>
                     </div>
-                  </div>
-                )}
-                {phase === 'resolved' && (
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-green-700">解決済みです。Redeem を実行できます。</div>
-                    <Button variant="outline" className="border-amber-300 text-amber-900" onClick={redeemAll}>全員 Redeem</Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-          {selectedProject == null ? (
-            <Card className="shadow">
-              <CardContent className="p-4">
-                <div className="h-[420px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={impactChartData} margin={{ left: 8, right: 16, top: 20, bottom: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(Number(t)).toLocaleTimeString()} />
-                      <YAxis tick={{ fontSize: 12 }} label={{ value: 'Forecasted Impact', angle: -90, position: 'insideLeft' }} />
-                      <Tooltip formatter={(v: any) => (typeof v === 'number' ? v.toFixed(2) : v)} labelFormatter={(t: any) => new Date(Number(t)).toLocaleTimeString()} />
-                      <Legend />
-                      {phaseMarkers.map((m, i) => (
-                        <ReferenceLine key={i} x={m.t} stroke="#666" strokeDasharray="4 2">
-                          <Label value={m.label} position="insideTop" fill="#666" fontSize={10} />
-                        </ReferenceLine>
-                      ))}
-                      <Line type="monotone" dataKey="ascoe" name="アスコエ" stroke={colors['アスコエ']} dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="civichat" name="Civichat" stroke={colors['Civichat']} dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="handbook" name="お悩みハンドブック" stroke={colors['お悩みハンドブック']} dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="yadokari" name="みつもりヤドカリくん" stroke={colors['みつもりヤドカリくん']} dot={false} strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="shadow">
-              <CardContent className="p-4">
-                <div className="h-[420px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={perProjectHistory.map(s => ({ t: s.t, Funded: s.funded[selectedProject], NotFunded: s.notFunded[selectedProject] }))} margin={{ left: 8, right: 16, top: 20, bottom: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(Number(t)).toLocaleTimeString()} />
-                      <YAxis tick={{ fontSize: 12 }} label={{ value: '予想申請数', angle: -90, position: 'insideLeft' }} />
-                      <Tooltip formatter={(v: any) => (typeof v === 'number' ? v.toFixed(2) : v)} labelFormatter={(t: any) => new Date(Number(t)).toLocaleTimeString()} />
-                      <Legend />
-                      {phaseMarkers.map((m, i) => (
-                        <ReferenceLine key={i} x={m.t} stroke="#666" strokeDasharray="4 2">
-                          <Label value={m.label} position="insideTop" fill="#666" fontSize={10} />
-                        </ReferenceLine>
-                      ))}
-                      <Line type="monotone" dataKey="Funded" stroke={colors.Funded} dot={false} strokeWidth={2} />
-                      <Line type="monotone" dataKey="NotFunded" stroke={colors.NotFunded} dot={false} strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {selectedProject == null ? (
+              <Card className="shadow">
+                <CardContent className="p-4">
+                  <div className="h-[420px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={impactChartData} margin={{ left: 8, right: 16, top: 20, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(Number(t)).toLocaleTimeString()} />
+                        <YAxis tick={{ fontSize: 12 }} label={{ value: 'Forecasted Impact', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip formatter={(v: any) => (typeof v === 'number' ? v.toFixed(2) : v)} labelFormatter={(t: any) => new Date(Number(t)).toLocaleTimeString()} />
+                        <Legend />
+                        {phaseMarkers.map((m, i) => (
+                          <ReferenceLine key={i} x={m.t} stroke="#666" strokeDasharray="4 2">
+                            <Label value={m.label} position="insideTop" fill="#666" fontSize={10} />
+                          </ReferenceLine>
+                        ))}
+                        <Line type="monotone" dataKey="ascoe" name="アスコエ" stroke={colors['アスコエ']} dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="civichat" name="Civichat" stroke={colors['Civichat']} dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="handbook" name="お悩みハンドブック" stroke={colors['お悩みハンドブック']} dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="yadokari" name="みつもりヤドカリくん" stroke={colors['みつもりヤドカリくん']} dot={false} strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="shadow">
+                <CardContent className="p-4">
+                  <div className="h-[420px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={perProjectHistory.map(s => ({ t: s.t, Funded: s.funded[selectedProject], NotFunded: s.notFunded[selectedProject] }))} margin={{ left: 8, right: 16, top: 20, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(Number(t)).toLocaleTimeString()} />
+                        <YAxis tick={{ fontSize: 12 }} label={{ value: '予想申請数', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip formatter={(v: any) => (typeof v === 'number' ? v.toFixed(2) : v)} labelFormatter={(t: any) => new Date(Number(t)).toLocaleTimeString()} />
+                        <Legend />
+                        {phaseMarkers.map((m, i) => (
+                          <ReferenceLine key={i} x={m.t} stroke="#666" strokeDasharray="4 2">
+                            <Label value={m.label} position="insideTop" fill="#666" fontSize={10} />
+                          </ReferenceLine>
+                        ))}
+                        <Line type="monotone" dataKey="Funded" stroke={colors.Funded} dot={false} strokeWidth={2} />
+                        <Line type="monotone" dataKey="NotFunded" stroke={colors.NotFunded} dot={false} strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {selectedProject == null && (
-            <div className="space-y-2">
-              <div className="text-xs text-gray-600">凍結済みの面は「-」で表示します。各カードの右上は状態（OPEN / FUNDED / NOT FUNDED）。</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {projects.map((p) => {
-                  const data = perProjectSeries.map((s) => ({ t: s.t, Funded: s.funded[p.id], NotFunded: s.notFunded[p.id] }))
-                  const status = frozenNot[p.id] ? 'FUNDED' : frozenFundedZero[p.id] ? 'NOT FUNDED' : 'OPEN'
-                  const fuP = priceUp(p.markets.funded.qUp, p.markets.funded.qDown, p.markets.funded.b)
-                  const nfP = priceUp(p.markets.not_funded.qUp, p.markets.not_funded.qDown, p.markets.not_funded.b)
-                  const fundedAbs = impliedValue(fuP, p.rangeMin, p.rangeMax)
-                  const notAbs = impliedValue(nfP, p.rangeMin, p.rangeMax)
-                  const impactAbs = (fuP - nfP) * (p.rangeMax - p.rangeMin)
-                  const priceF = prices[p.id].funded
-                  const priceN = prices[p.id].not_funded
-                  const fundedFrozen = frozenFundedZero[p.id]
-                  const notFrozen = frozenNot[p.id]
-                  const fmtMaybe = (val: number, hide: boolean) => (hide ? '-' : val.toFixed(2))
-                  return (
-                    <Card key={p.id} className="shadow">
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium">{p.name}</div>
-                          <div className="text-xs rounded-full px-2 py-1 border">{status}</div>
-                        </div>
-                        <div className="h-[180px]">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(Number(t)).toLocaleTimeString()} />
-                              <YAxis tick={{ fontSize: 11 }} label={{ value: '予想申請数', angle: -90, position: 'insideLeft' }} />
-                              <Tooltip formatter={(v: any) => (typeof v === 'number' ? v.toFixed(2) : v)} labelFormatter={(t: any) => new Date(Number(t)).toLocaleTimeString()} />
-                              {phaseMarkers.map((m, i) => (<ReferenceLine key={i} x={m.t} stroke="#92c5de" strokeDasharray="2 2" />))}
-                              <Line type="monotone" dataKey="Funded" stroke={colors.Funded} dot={false} strokeWidth={2} />
-                              <Line type="monotone" dataKey="NotFunded" stroke={colors.NotFunded} dot={false} strokeWidth={2} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-700">
-                          <div>1億円投資の予想</div>
-                          <div className="text-right">{fmtMaybe(fundedAbs, fundedFrozen)}</div>
-                          <div>非投資の予想</div>
-                          <div className="text-right">{fmtMaybe(notAbs, notFrozen)}</div>
-                          <div>Forecasted Impact</div>
-                          <div className="text-right">{impactAbs.toFixed(2)}</div>
-                          <div>価格(Funded UP / DOWN)</div>
-                          <div className="text-right">{fmtMaybe(priceF.up, fundedFrozen)} / {fmtMaybe(priceF.down, fundedFrozen)}</div>
-                          <div>価格(Not UP / DOWN)</div>
-                          <div className="text-right">{fmtMaybe(priceN.up, notFrozen)} / {fmtMaybe(priceN.down, notFrozen)}</div>
-                        </div>
-                        <div className="pt-2">
-                          <Button className="w-full" onClick={() => setSelectedProject(p.id)}>このプロジェクトを見る</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
+            {selectedProject == null && (
+              <div className="space-y-2">
+                <div className="text-xs text-gray-600">凍結済みの面は「-」で表示します。各カードの右上は状態（OPEN / FUNDED / NOT FUNDED）。</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {projects.map((p) => {
+                    const data = perProjectSeries.map((s) => ({ t: s.t, Funded: s.funded[p.id], NotFunded: s.notFunded[p.id] }))
+                    const status = frozenNot[p.id] ? 'FUNDED' : frozenFundedZero[p.id] ? 'NOT FUNDED' : 'OPEN'
+                    const fuP = priceUp(p.markets.funded.qUp, p.markets.funded.qDown, p.markets.funded.b)
+                    const nfP = priceUp(p.markets.not_funded.qUp, p.markets.not_funded.qDown, p.markets.not_funded.b)
+                    const fundedAbs = impliedValue(fuP, p.rangeMin, p.rangeMax)
+                    const notAbs = impliedValue(nfP, p.rangeMin, p.rangeMax)
+                    const impactAbs = (fuP - nfP) * (p.rangeMax - p.rangeMin)
+                    const priceF = prices[p.id].funded
+                    const priceN = prices[p.id].not_funded
+                    const fundedFrozen = frozenFundedZero[p.id]
+                    const notFrozen = frozenNot[p.id]
+                    const fmtMaybe = (val: number, hide: boolean) => (hide ? '-' : val.toFixed(2))
+                    return (
+                      <Card key={p.id} className="shadow">
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium">{p.name}</div>
+                            <div className="text-xs rounded-full px-2 py-1 border">{status}</div>
+                          </div>
+                          <div className="h-[180px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={data} margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="t" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(Number(t)).toLocaleTimeString()} />
+                                <YAxis tick={{ fontSize: 11 }} label={{ value: '予想申請数', angle: -90, position: 'insideLeft' }} />
+                                <Tooltip formatter={(v: any) => (typeof v === 'number' ? v.toFixed(2) : v)} labelFormatter={(t: any) => new Date(Number(t)).toLocaleTimeString()} />
+                                {phaseMarkers.map((m, i) => (<ReferenceLine key={i} x={m.t} stroke="#92c5de" strokeDasharray="2 2" />))}
+                                <Line type="monotone" dataKey="Funded" stroke={colors.Funded} dot={false} strokeWidth={2} />
+                                <Line type="monotone" dataKey="NotFunded" stroke={colors.NotFunded} dot={false} strokeWidth={2} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-700">
+                            <div>1億円投資の予想</div>
+                            <div className="text-right">{fmtMaybe(fundedAbs, fundedFrozen)}</div>
+                            <div>非投資の予想</div>
+                            <div className="text-right">{fmtMaybe(notAbs, notFrozen)}</div>
+                            <div>Forecasted Impact</div>
+                            <div className="text-right">{impactAbs.toFixed(2)}</div>
+                            <div>価格(Funded UP / DOWN)</div>
+                            <div className="text-right">{fmtMaybe(priceF.up, fundedFrozen)} / {fmtMaybe(priceF.down, fundedFrozen)}</div>
+                            <div>価格(Not UP / DOWN)</div>
+                            <div className="text-right">{fmtMaybe(priceN.up, notFrozen)} / {fmtMaybe(priceN.down, notFrozen)}</div>
+                          </div>
+                          <div className="pt-2">
+                            <Button className="w-full" onClick={() => setSelectedProject(p.id)}>このプロジェクトを見る</Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
 
 
 
-        </div>
+          </div>
 
-        <div className="space-y-6">
+          <div className="space-y-6">
             <Card className="shadow">
               <CardContent className="p-5 md:p-6 space-y-4">
-              <div className="font-medium">トレーディング</div>
-              <div className="space-y-4 text-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-3">
-                  <span className="text-xs text-gray-600">プロジェクト</span>
-                  <select className="h-9 border rounded px-2 text-sm w-full sm:col-span-2" value={selectedProject ?? ''} onChange={(e) => setSelectedProject(e.target.value as ProjectId)}>
-                    <option value="" disabled>選択してください</option>
-                    {projects.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
-                  </select>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-3">
-                  <span className="text-xs text-gray-600">シナリオ</span>
-                  <select className="h-9 border rounded px-2 text-sm w-full sm:col-span-2" value={tradeScenario} onChange={(e) => setTradeScenario(e.target.value as Scenario)} disabled={!activeProject}>
-                    <option value="funded" disabled={isFundedFrozen}>Funded</option>
-                    <option value="not_funded" disabled={isNotFrozen}>Not Funded</option>
-                  </select>
-                </div>
-                {activeProject && (
-                  <div className="space-y-1">
-                    <div className="text-xs text-gray-600">市場の予想（対象: {tradeScenario==='funded' ? 'Funded' : 'Not Funded'}）</div>
-                    <div className="text-base font-medium">
-                      {(() => {
-                        const abs = getCurrentAbs(activeProject, tradeScenario)
-                        const m = activeProject.markets[tradeScenario]
-                        const pUp = priceUp(m.qUp, m.qDown, m.b)
-                        return (
-                          <span>
-                            {Math.round(abs)} 件
-                            <span className="text-xs text-gray-500">（上振れ確率 P(UP) {pUp.toFixed(2)}）</span>
-                          </span>
-                        )
-                      })()}
-                    </div>
-                    <div className="text-[11px] text-gray-500">あなたの見立ては「市場予想より高い」か「低い」かを選んでください。</div>
+                <div className="font-medium">トレーディング</div>
+                <div className="space-y-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-3">
+                    <span className="text-xs text-gray-600">プロジェクト</span>
+                    <select className="h-9 border rounded px-2 text-sm w-full sm:col-span-2" value={selectedProject ?? ''} onChange={(e) => setSelectedProject(e.target.value as ProjectId)}>
+                      <option value="" disabled>選択してください</option>
+                      {projects.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+                    </select>
                   </div>
-                )}
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <Button className="w-full sm:w-auto" variant={tradeSide==='UP' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('UP')}>予想より高くなるに賭ける（UP）</Button>
-                  <Button className="w-full sm:w-auto" variant={tradeSide==='DOWN' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('DOWN')}>予想より低くなるに賭ける（DOWN）</Button>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-3">
+                    <span className="text-xs text-gray-600">シナリオ</span>
+                    <select className="h-9 border rounded px-2 text-sm w-full sm:col-span-2" value={tradeScenario} onChange={(e) => setTradeScenario(e.target.value as Scenario)} disabled={!activeProject}>
+                      <option value="funded" disabled={isFundedFrozen}>Funded</option>
+                      <option value="not_funded" disabled={isNotFrozen}>Not Funded</option>
+                    </select>
+                  </div>
+                  {activeProject && (
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-600">市場の予想（対象: {tradeScenario === 'funded' ? 'Funded' : 'Not Funded'}）</div>
+                      <div className="text-base font-medium">
+                        {(() => {
+                          const abs = getCurrentAbs(activeProject, tradeScenario)
+                          const m = activeProject.markets[tradeScenario]
+                          const pUp = priceUp(m.qUp, m.qDown, m.b)
+                          return (
+                            <span>
+                              {Math.round(abs)} 件
+                              <span className="text-xs text-gray-500">（上振れ確率 P(UP) {pUp.toFixed(2)}）</span>
+                            </span>
+                          )
+                        })()}
+                      </div>
+                      <div className="text-[11px] text-gray-500">あなたの見立ては「市場予想より高い」か「低い」かを選んでください。</div>
+                    </div>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <Button className="w-full sm:w-auto" variant={tradeSide === 'UP' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('UP')}>予想より高くなるに賭ける（UP）</Button>
+                    <Button className="w-full sm:w-auto" variant={tradeSide === 'DOWN' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('DOWN')}>予想より低くなるに賭ける（DOWN）</Button>
+                  </div>
+                  <TradingByAmount
+                    project={activeProject}
+                    scenario={tradeScenario}
+                    side={tradeSide}
+                    balance={activeAccount.balance}
+                    disabled={(tradeScenario === 'funded' && isFundedFrozen) || (tradeScenario === 'not_funded' && isNotFrozen) || !activeProject}
+                    onExecute={(deltaShares, amountPaid) => {
+                      if (!activeProject) return
+                      // 実行: deltaShares をそのまま buy に渡す（LMSR準拠）
+                      buy(activeProject.id, tradeScenario, tradeSide, deltaShares)
+                    }}
+                  />
+                  <div className="pt-4">
+                    <BaseSection project={activeProject} />
+                  </div>
                 </div>
-                <TradingByAmount
-                  project={activeProject}
-                  scenario={tradeScenario}
-                  side={tradeSide}
-                  balance={activeAccount.balance}
-                  disabled={(tradeScenario==='funded' && isFundedFrozen) || (tradeScenario==='not_funded' && isNotFrozen) || !activeProject}
-                  onExecute={(deltaShares, amountPaid) => {
-                    if (!activeProject) return
-                    // 実行: deltaShares をそのまま buy に渡す（LMSR準拠）
-                    buy(activeProject.id, tradeScenario, tradeSide, deltaShares)
-                  }}
-                />
-                <div className="pt-4">
-                  <BaseSection project={activeProject} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+
+          </div>
 
 
         </div>
-
-
       </div>
     </div>
-  </div>
   )
 }
-;type TradingByAmountProps = {
+; type TradingByAmountProps = {
   project: Project | null
   scenario: Scenario
   side: Side

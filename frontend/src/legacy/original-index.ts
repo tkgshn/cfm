@@ -300,7 +300,7 @@ export default function App() {
                                     < Select value = { activeAccountId } onValueChange = { setActiveAccountId } >
                                         <SelectTrigger className="w-40" > <SelectValue /></SelectTrigger >
                                             <SelectContent>
-                                            { accounts.map(a => (<SelectItem key= { a.id } value = { a.id } > { a.name }{ a.isAdmin ? " (admin)" : "" } </SelectItem>)) }
+                                            { accounts.map(a => (<SelectItem key= { a.id } value = { a.id } > { a.name }{ a.isAdmin ? " 管理者" : "" } </SelectItem>)) }
                                             </SelectContent>
                                             </Select>
                                             < span className = "text-sm text-gray-600 ml-2" > 残高: <b>{ activeAccount.balance.toFixed(2) } < /b> USDC</span >
