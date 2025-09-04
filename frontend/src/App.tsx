@@ -653,10 +653,10 @@ export default function App() {
         
       </div>
     </div>
+  </div>
   )
 }
-
-type TradingByAmountProps = {
+;type TradingByAmountProps = {
   project: Project | null
   scenario: Scenario
   side: Side
