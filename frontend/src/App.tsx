@@ -402,9 +402,9 @@ export default function App() {
           </div>
         </div>
       </div>
-      <div className="p-6">
-        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-3 space-y-6">
+      <div className="p-6 md:p-8">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="md:col-span-3 space-y-8">
           <header className="space-y-2">
             <div className="flex flex-col gap-2">
               <h1 className="text-2xl font-bold">それぞれの社会保障制度の診断プロジェクトに1億円を投資した場合、各プロジェクトの申請数を予測する。</h1>
@@ -590,20 +590,20 @@ export default function App() {
         </div>
 
         <div className="space-y-6">
-          <Card className="shadow">
-            <CardContent className="p-4 space-y-3">
+            <Card className="shadow">
+              <CardContent className="p-5 md:p-6 space-y-4">
               <div className="font-medium">トレーディング</div>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <span>プロジェクト</span>
-                  <select className="h-9 border rounded px-2 text-sm" value={selectedProject ?? ''} onChange={(e) => setSelectedProject(e.target.value as ProjectId)}>
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-3">
+                  <span className="text-xs text-gray-600">プロジェクト</span>
+                  <select className="h-9 border rounded px-2 text-sm w-full sm:col-span-2" value={selectedProject ?? ''} onChange={(e) => setSelectedProject(e.target.value as ProjectId)}>
                     <option value="" disabled>選択してください</option>
                     {projects.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
                   </select>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>シナリオ</span>
-                  <select className="h-9 border rounded px-2 text-sm" value={tradeScenario} onChange={(e) => setTradeScenario(e.target.value as Scenario)} disabled={!activeProject}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-2 sm:gap-3">
+                  <span className="text-xs text-gray-600">シナリオ</span>
+                  <select className="h-9 border rounded px-2 text-sm w-full sm:col-span-2" value={tradeScenario} onChange={(e) => setTradeScenario(e.target.value as Scenario)} disabled={!activeProject}>
                     <option value="funded" disabled={isFundedFrozen}>Funded</option>
                     <option value="not_funded" disabled={isNotFrozen}>Not Funded</option>
                   </select>
@@ -627,9 +627,9 @@ export default function App() {
                     <div className="text-[11px] text-gray-500">あなたの見立ては「市場予想より高い」か「低い」かを選んでください。</div>
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <Button variant={tradeSide==='UP' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('UP')}>予想より高くなるに賭ける（UP）</Button>
-                  <Button variant={tradeSide==='DOWN' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('DOWN')}>予想より低くなるに賭ける（DOWN）</Button>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <Button className="w-full sm:w-auto" variant={tradeSide==='UP' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('UP')}>予想より高くなるに賭ける（UP）</Button>
+                  <Button className="w-full sm:w-auto" variant={tradeSide==='DOWN' ? 'default' : 'outline'} disabled={!activeProject} onClick={() => setTradeSide('DOWN')}>予想より低くなるに賭ける（DOWN）</Button>
                 </div>
                 <TradingByAmount
                   project={activeProject}
@@ -709,13 +709,15 @@ function TradingByAmount({ project, scenario, side, balance, disabled, onExecute
   const ctaLabel = `${scenJp} で ${side} を購入`
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-1">
+    <div className="space-y-4">
+      <div className="space-y-2">
         <div className="text-xs text-gray-600">金額</div>
-        <div className="flex items-center gap-2">
-          <Input type="number" className="w-32" value={amount} onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))} disabled={disabled} />
-          <span className="text-xs text-gray-500">USDC</span>
-          <div className="flex gap-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Input type="number" className="w-full sm:w-40" value={amount} onChange={(e) => setAmount(Math.max(0, Number(e.target.value)))} disabled={disabled} />
+            <span className="text-xs text-gray-500">USDC</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
             <Button variant="outline" disabled={disabled} onClick={() => setAmount((v) => Math.max(0, v - 1))}>-1</Button>
             <Button variant="outline" disabled={disabled} onClick={() => setAmount((v) => v + 1)}>+1</Button>
             <Button variant="outline" disabled={disabled} onClick={() => setAmount((v) => v + 10)}>+10</Button>
@@ -724,15 +726,15 @@ function TradingByAmount({ project, scenario, side, balance, disabled, onExecute
         </div>
       </div>
 
-      <Button className="w-full" disabled={disabled || amount <= 0 || delta <= 0} onClick={() => onExecute(delta, exactCost)}>{ctaLabel}</Button>
+      <Button className="w-full h-10" disabled={disabled || amount <= 0 || delta <= 0} onClick={() => onExecute(delta, exactCost)}>{ctaLabel}</Button>
 
-      <div className="pt-1 space-y-2">
+      <div className="pt-1 space-y-3">
         <div className="text-sm font-medium">見込み損益（プレビュー）</div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <div className="text-xs text-gray-600">結果の仮定（スライダー）</div>
           <input
             type="range"
-            className="w-full"
+            className="w-full accent-black"
             min={project.rangeMin}
             max={project.rangeMax}
             step={Math.max(1, Math.round((project.rangeMax - project.rangeMin) / 100))}
@@ -740,7 +742,7 @@ function TradingByAmount({ project, scenario, side, balance, disabled, onExecute
             onChange={(e) => setPreviewAbs(Number(e.target.value))}
             disabled={disabled}
           />
-          <div className="flex justify-between text-[10px] text-gray-500">
+          <div className="flex justify-between text-[10px] text-gray-500 px-0.5">
             <span>{project.rangeMin}</span>
             <span>{Math.round(project.rangeMin + (project.rangeMax - project.rangeMin) * 0.25)}</span>
             <span>{Math.round((project.rangeMin + project.rangeMax) / 2)}</span>
