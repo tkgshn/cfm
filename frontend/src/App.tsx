@@ -471,6 +471,9 @@ export default function App() {
                 <option key={a.id} value={a.id}>{a.name}{a.isAdmin ? ' (admin)' : ''}</option>
               ))}
             </select>
+            {activeAccount.isAdmin && (
+              <span className="text-[10px] font-semibold text-amber-900 bg-amber-200 border border-amber-300 rounded px-2 py-0.5">管理者</span>
+            )}
             <span className="text-xs text-gray-600">残高: <b>{activeAccount.balance.toFixed(2)}</b> USDC</span>
           </div>
         </div>
@@ -483,7 +486,9 @@ export default function App() {
               <h1 className="text-2xl font-bold">それぞれの社会保障制度の診断プロジェクトに1億円を投資した場合、各プロジェクトの申請数を予測する。</h1>
             </div>
             <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">上段: 全体の <b>Forecasted Impact = P(Funded UP) − P(Not UP)</b>。下段: 各プロジェクトの Funded vs Not Funded。</p>
+              <p className="text-sm text-gray-600">
+                予測対象は「申請数（絶対値）」、評価は「予測インパクト＝Funded − Not Funded」。市場開始から約1週間後にインパクト最大のプロジェクトへ1億円を分配し、分配から1カ月後の実測で清算します。
+              </p>
               {selectedProject && (
                 <Button variant="outline" onClick={() => setSelectedProject(null)}>全体を見る</Button>
               )}
@@ -491,17 +496,21 @@ export default function App() {
           </header>
 
           {activeAccount.isAdmin && (
-            <Card className="shadow">
+            <Card className="shadow ring-2 ring-amber-300 border-amber-300 bg-amber-50">
               <CardContent className="p-3 space-y-3">
+                <div className="text-[11px] text-amber-900 bg-amber-100 border border-amber-300 rounded px-2 py-1 inline-flex items-center gap-1">
+                  <span>🔒</span>
+                  <span>管理者専用</span>
+                </div>
                 {phase === 'open' && (
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <div className="text-sm font-medium">Admin: 指定時点の Impact 最大プロジェクトを確定（Winner→Not funded = 0 / Others→Funded = 0）</div>
+                    <div className="text-sm font-medium">指定時点の Impact 最大プロジェクトを確定（Winner→Not funded = 0 / Others→Funded = 0）</div>
                     <div className="flex items-center gap-2">
                       <select className="h-9 border rounded px-2 text-sm" value={String(adminIdx)} onChange={(e) => setAdminIdx(Number(e.target.value))}>
                         <option value="-1">現在（最新）</option>
                         {adminOptions.map((o) => (<option key={o.idx} value={o.idx}>{o.label}</option>))}
                       </select>
-                      <Button onClick={() => adminFixAtIndex(adminIdx)}>Impact最大で確定</Button>
+                      <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => adminFixAtIndex(adminIdx)}>Forcasted Impactが最大なものに助成を確定</Button>
                     </div>
                   </div>
                 )}
@@ -527,20 +536,20 @@ export default function App() {
                       ))}
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <Button onClick={() => {
+                      <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => {
                         const t = nowTs()
                         setPhase('resolved')
                         setPhaseMarkers((m) => [...m, { t, label: 'Resolution' }])
                         if (resolution) setResolution({ winner: resolution.winner, values: resolutionForm })
                       }}>解決にする（数値を適用）</Button>
-                      <Button variant="outline" onClick={redeemAll}>全員 Redeem</Button>
+                      <Button variant="outline" className="border-amber-300 text-amber-900" onClick={redeemAll}>全員 Redeem</Button>
                     </div>
                   </div>
                 )}
                 {phase === 'resolved' && (
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-green-700">解決済みです。Redeem を実行できます。</div>
-                    <Button variant="outline" onClick={redeemAll}>全員 Redeem</Button>
+                    <Button variant="outline" className="border-amber-300 text-amber-900" onClick={redeemAll}>全員 Redeem</Button>
                   </div>
                 )}
               </CardContent>
@@ -657,9 +666,9 @@ export default function App() {
             </div>
           )}
 
-          
 
-          
+
+
         </div>
 
         <div className="space-y-6">
@@ -723,10 +732,10 @@ export default function App() {
             </CardContent>
           </Card>
 
-          
+
         </div>
 
-        
+
       </div>
     </div>
   </div>
