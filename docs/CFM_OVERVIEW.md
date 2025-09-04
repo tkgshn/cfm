@@ -42,6 +42,7 @@ CFM フロントエンド概要ドキュメント
   - 「このプロジェクトを見る」で個別チャートへ遷移。
 - 保有シェア
   - ログイン中アカウントの保有量（Funded/Not × UP/DOWN）、各価格、推定価値合計、残高を表示。
+  - Base（If Funded / If Not Funded）ペアのミント/マージ（B設計）に対応。ミントで 1 USDC → If Funded 1 + If Not Funded 1。マージでペアを 1 USDC に戻す。
 - 管理者フロー
   - Impact 最大で確定（指定時点 or 最新から最大 Impact のプロジェクトを Winner として決定）。
     - Winner: Not Funded = 0 に固定。Others: Funded = 0 に固定。
@@ -61,7 +62,7 @@ CFM フロントエンド概要ドキュメント
 データモデル（抜粋）
 - 型
   - `Project` … `markets: Record<Scenario, { qUp, qDown, b }>`
-  - `Account` … `balance`, `holdings: Record<ProjectId, Record<Scenario, Record<Side, number>>>`
+  - `Account` … `balance`, `holdings: Record<ProjectId, Record<Scenario, Record<Side, number>>>`, `base: Record<ProjectId, { funded: number; not_funded: number }>`
   - `Phase` … `open | decided | resolved`
 - 主な関数
   - `lmsrCost(qUp, qDown, b)`
@@ -73,6 +74,11 @@ CFM フロントエンド概要ドキュメント
   - Sell: `delta < 0` を適用し、`refund = pre - post` を受け取り、保有量を減らす（LMSR厳守）。
 - 予想反映（直感 UI）
   - 目標の絶対値から `pTarget` を算出し、現行価格との差に応じて `UP` もしくは `DOWN` を買い増しする必要量を計算→自動売買。
+
+Base（B設計）
+- 「If Funded / If Not Funded」のペアを 1:1 でミント/マージ。
+- 清算時は Winner が Funded なら If Funded=1, If Not Funded=0（逆も同様）。
+- これにより「Not Funded を持っているから損」という混乱を回避し、損益は各条件下の UP/DOWN 予測の当否で決まることを明示。
 
 操作フロー
 - 一般ユーザー

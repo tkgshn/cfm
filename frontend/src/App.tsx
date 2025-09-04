@@ -30,12 +30,14 @@ type Project = {
 }
 
 type Holdings = Record<ProjectId, Record<Scenario, Record<Side, number>>>
+type BaseHoldings = Record<ProjectId, { funded: number; not_funded: number }>
 type Account = {
   id: string
   name: string
   balance: number
   isAdmin: boolean
   holdings: Holdings
+  base: BaseHoldings
 }
 
 const DEFAULT_B = 180
@@ -75,10 +77,19 @@ function emptyHoldings(): Holdings {
   }
 }
 
+function emptyBase(): BaseHoldings {
+  return {
+    ascoe: { funded: 0, not_funded: 0 },
+    civichat: { funded: 0, not_funded: 0 },
+    handbook: { funded: 0, not_funded: 0 },
+    yadokari: { funded: 0, not_funded: 0 },
+  }
+}
+
 const initialAccounts: Account[] = [
-  { id: 'admin', name: 'Admin', balance: 1000, isAdmin: true, holdings: emptyHoldings() },
-  { id: 'user1', name: 'User 1', balance: 1000, isAdmin: false, holdings: emptyHoldings() },
-  { id: 'user2', name: 'User 2', balance: 1000, isAdmin: false, holdings: emptyHoldings() },
+  { id: 'admin', name: 'Admin', balance: 1000, isAdmin: true, holdings: emptyHoldings(), base: emptyBase() },
+  { id: 'user1', name: 'User 1', balance: 1000, isAdmin: false, holdings: emptyHoldings(), base: emptyBase() },
+  { id: 'user2', name: 'User 2', balance: 1000, isAdmin: false, holdings: emptyHoldings(), base: emptyBase() },
 ]
 
 export default function App() {
@@ -207,6 +218,29 @@ export default function App() {
     }))))
   }
 
+  // ===== Base（If Funded / If Not Funded）
+  const mintBasePair = (pid: ProjectId, amount: number) => {
+    if (amount <= 0) return
+    if (activeAccount.balance < amount) return alert('残高不足')
+    setAccounts(as => as.map(a => a.id !== activeAccount.id ? a : ({
+      ...a,
+      balance: a.balance - amount,
+      base: { ...a.base, [pid]: { funded: a.base[pid].funded + amount, not_funded: a.base[pid].not_funded + amount } }
+    })))
+  }
+
+  const mergeBasePair = (pid: ProjectId, amount?: number) => {
+    const b = activeAccount.base[pid]
+    const can = Math.min(b.funded, b.not_funded)
+    const amt = amount == null ? can : Math.min(amount, can)
+    if (amt <= 0) return
+    setAccounts(as => as.map(a => a.id !== activeAccount.id ? a : ({
+      ...a,
+      balance: a.balance + amt,
+      base: { ...a.base, [pid]: { funded: a.base[pid].funded - amt, not_funded: a.base[pid].not_funded - amt } }
+    })))
+  }
+
   const prices = useMemo(() => {
     const map: Record<ProjectId, { funded: { up: number; down: number }; not_funded: { up: number; down: number } }> = {
       ascoe: { funded: { up: 0, down: 0 }, not_funded: { up: 0, down: 0 } },
@@ -222,6 +256,34 @@ export default function App() {
     })
     return map
   }, [projects])
+
+  const BaseSection: React.FC<{ project: Project | null }> = ({ project }) => {
+    if (!project) return <div className="text-xs text-gray-500">プロジェクトを選択してください。</div>
+    const b = activeAccount.base[project.id]
+    const [amt, setAmt] = useState<number>(10)
+    return (
+      <div className="space-y-2">
+        <div className="text-xs font-medium">ベース保有（If Funded / If Not Funded）</div>
+        <div className="text-xs text-gray-600">このペアは常に If Funded + If Not Funded = 1 USDC（どちらか一方が最終的に1、もう一方が0）を満たします。</div>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="border rounded p-2">
+            <div className="text-xs text-gray-500">If Funded</div>
+            <div className="font-medium">{b.funded.toFixed(2)}</div>
+          </div>
+          <div className="border rounded p-2">
+            <div className="text-xs text-gray-500">If Not Funded</div>
+            <div className="font-medium">{b.not_funded.toFixed(2)}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input type="number" className="w-28" value={amt} onChange={(e) => setAmt(Math.max(0, Number(e.target.value)))} />
+          <span className="text-xs text-gray-500">USDC</span>
+          <Button variant="outline" onClick={() => mintBasePair(project.id, amt)} disabled={activeAccount.balance < amt || amt <= 0}>ペアをミント</Button>
+          <Button variant="outline" onClick={() => mergeBasePair(project.id)} disabled={Math.min(b.funded, b.not_funded) <= 0}>ペアをマージ</Button>
+        </div>
+      </div>
+    )
+  }
 
   const applyTarget = (pid: ProjectId, scenario: Scenario, targetAbs: number) => {
     // 目標絶対値に到達するよう、必要なサイドに必要量のトレードを発行（LMSR準拠）
@@ -334,6 +396,7 @@ export default function App() {
     setAccounts((prev) => prev.map((a) => {
       let bal = a.balance
       const newHold = JSON.parse(JSON.stringify(a.holdings)) as Holdings
+      const newBase = JSON.parse(JSON.stringify(a.base)) as BaseHoldings
       ;(Object.keys(newHold) as ProjectId[]).forEach((pid) => {
         const prj = projects.find((p) => p.id === pid)!
         const min = prj.rangeMin, max = prj.rangeMax
@@ -352,8 +415,18 @@ export default function App() {
             }
           })
         })
+        // Base payout: winner の Funded=1 or loser の Not Funded=1
+        if (pid === winner) {
+          if (newBase[pid].funded > 0) { bal += newBase[pid].funded; newBase[pid].funded = 0 }
+          // NotFunded は 0
+          newBase[pid].not_funded = 0
+        } else {
+          if (newBase[pid].not_funded > 0) { bal += newBase[pid].not_funded; newBase[pid].not_funded = 0 }
+          // Funded は 0
+          newBase[pid].funded = 0
+        }
       })
-      return { ...a, balance: bal, holdings: newHold }
+      return { ...a, balance: bal, holdings: newHold, base: newBase }
     }))
   }
 
@@ -643,6 +716,9 @@ export default function App() {
                     buy(activeProject.id, tradeScenario, tradeSide, deltaShares)
                   }}
                 />
+                <div className="pt-4">
+                  <BaseSection project={activeProject} />
+                </div>
               </div>
             </CardContent>
           </Card>
