@@ -74,11 +74,15 @@ export default function App() {
         document.title = `${m.name} - ${base}`
         return
       }
-    } else if (route.name === 'portfolio') {
+      document.title = `市場詳細 - ${base}`
+      return
+    }
+    if (route.name === 'portfolio') {
       document.title = `ポートフォリオ - ${base}`
       return
     }
-    document.title = base
+    // ホーム（マーケット一覧）
+    document.title = `マーケット一覧 - ${base}`
   }, [route])
 
   // ===== 総資産（ポジション即時売却想定）の時価評価 =====
