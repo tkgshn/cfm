@@ -77,6 +77,7 @@ export default function MarketPage({
   setActiveAccountId: (id: string) => void
 }) {
   const _ = marketId
+  const STORAGE_KEY = `cfm:projects:${marketId}`
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const activeAccount = useMemo(() => accounts.find((a) => a.id === activeAccountId)!, [accounts, activeAccountId])
 
@@ -98,6 +99,16 @@ export default function MarketPage({
     handbook: { funded: 5000, not_funded: 5000 },
     yadokari: { funded: 5000, not_funded: 5000 },
   })
+  // 永続化されたプロジェクト状態の復元
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) setProjects(parsed)
+      }
+    } catch {}
+  }, [STORAGE_KEY])
   const [helpOpen, setHelpOpen] = useState(false)
   const [helpPage, setHelpPage] = useState(0)
   const helpPages: React.ReactNode[] = [

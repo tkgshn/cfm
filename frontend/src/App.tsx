@@ -44,7 +44,7 @@ export default function App() {
   const Header = () => (
     <div className="w-full border-b bg-white sticky top-0 z-10">
       <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
-        <a href="#" className="text-sm font-semibold hover:opacity-80">CFM</a>
+        <a href="#" className="text-sm font-semibold hover:opacity-80">条件付き市場のシミュレーション</a>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600">アカウント</span>
           <select className="h-8 border rounded px-2 text-xs" value={activeAccountId} onChange={(e) => setActiveAccountId(e.target.value)}>
