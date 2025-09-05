@@ -15,7 +15,7 @@ import {
 } from 'recharts'
 import type { Scenario, Side, ProjectId, Phase, MarketState, Project, BaseHoldings, Account, Holdings } from '@/lib/types'
 import { markets } from '@/lib/markets'
-import UserPositionCard from '@/components/UserPositionCard'
+import UserPositionsAllCard from '@/components/UserPositionsAllCard'
 
 const DEFAULT_B = 180
 
@@ -530,7 +530,7 @@ export default function MarketPage({
                               <span>
                                 {label}
                                 {latest && (
-                                  <span className="text-gray-500">（{(latest[key] as number).toFixed(2)}）</span>
+                                  <span className="text-gray-500">（{Math.round(latest[key] as number).toLocaleString()}）</span>
                                 )}
                               </span>
                             </div>
@@ -576,11 +576,9 @@ export default function MarketPage({
                       const fundedAbs = impliedValue(fuP, p.rangeMin, p.rangeMax)
                       const notAbs = impliedValue(nfP, p.rangeMin, p.rangeMax)
                       const impactAbs = (fuP - nfP) * (p.rangeMax - p.rangeMin)
-                      const my = activeAccount.holdings[p.id]
                       return (
-                        <div key={p.id} className="space-y-2">
-                          <Card className="shadow">
-                            <CardContent className="p-4 space-y-2">
+                        <Card key={p.id} className="shadow">
+                          <CardContent className="p-4 space-y-2">
                             <div className="flex items-center justify-between">
                               <div className="font-medium">{p.name}</div>
                               <div className="text-xs rounded-full px-2 py-1 border">{frozenNot[p.id] ? 'FUNDED' : (frozenFundedZero[p.id] ? 'NOT FUNDED' : 'OPEN')}</div>
@@ -608,10 +606,8 @@ export default function MarketPage({
                             <div className="pt-2">
                               <Button className="w-full" onClick={() => setSelectedProject(p.id)}>このプロジェクトを見る</Button>
                             </div>
-                            </CardContent>
-                          </Card>
-                          <UserPositionCard holding={my} />
-                        </div>
+                          </CardContent>
+                        </Card>
                       )
                     })}
                   </div>
@@ -669,10 +665,6 @@ export default function MarketPage({
                     </div>
                   </CardContent>
                 </Card>
-                {selectedProject && (
-                  <UserPositionCard holding={activeAccount.holdings[selectedProject]} />
-                )}
-
                 {/* 詳細ビューでは以下の一覧表示は出さない */}
               </div>
             )}
@@ -735,6 +727,7 @@ export default function MarketPage({
                 </div>
               </CardContent>
             </Card>
+            <UserPositionsAllCard projects={projects} holdings={activeAccount.holdings} />
 
           </div>
 
