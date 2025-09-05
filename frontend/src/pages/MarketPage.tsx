@@ -98,6 +98,28 @@ export default function MarketPage({
     handbook: { funded: 5000, not_funded: 5000 },
     yadokari: { funded: 5000, not_funded: 5000 },
   })
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [helpPage, setHelpPage] = useState(0)
+  const helpPages: React.ReactNode[] = [
+    (
+      <div className="space-y-2">
+        <div className="text-base font-medium">ようこそ</div>
+        <p className="text-sm text-gray-700">このマーケットでは、各プロジェクトに1億円を投資した場合としない場合の「1カ月後の申請数」を予測して取引します。</p>
+      </div>
+    ),
+    (
+      <div className="space-y-2">
+        <div className="text-base font-medium">シナリオと取引</div>
+        <p className="text-sm text-gray-700">右側パネルで「投資された場合／投資されなかった場合（通常通り）」を選び、市場予想より上がる（UP）/下がる（DOWN）を選択して金額を入力します。</p>
+      </div>
+    ),
+    (
+      <div className="space-y-2">
+        <div className="text-base font-medium">資金配分と清算</div>
+        <p className="text-sm text-gray-700">予測期間後、予測インパクトが最大のプロジェクトに実際に1億円を配分し、1カ月後の実測値で清算されます。</p>
+      </div>
+    ),
+  ]
 
   type ImpactPoint = { t: number } & Record<ProjectId, number>
   const [impactHistory, setImpactHistory] = useState<ImpactPoint[]>(() => [{ t: nowTs(), ascoe: 0, civichat: 0, handbook: 0, yadokari: 0 }])
@@ -357,6 +379,78 @@ export default function MarketPage({
     })
   }
 
+  // ===== ランダム取引シミュレーション =====
+  const simulateRandomTrades = (count = 30) => {
+    // 深いコピー（必要な範囲のみ）
+    const ps: Project[] = projects.map((p) => ({
+      ...p,
+      markets: {
+        funded: { ...p.markets.funded },
+        not_funded: { ...p.markets.not_funded },
+      },
+    }))
+    const as: Account[] = accounts.map((a) => ({
+      ...a,
+      holdings: {
+        ascoe: { funded: { ...a.holdings.ascoe.funded }, not_funded: { ...a.holdings.ascoe.not_funded } },
+        civichat: { funded: { ...a.holdings.civichat.funded }, not_funded: { ...a.holdings.civichat.not_funded } },
+        handbook: { funded: { ...a.holdings.handbook.funded }, not_funded: { ...a.holdings.handbook.not_funded } },
+        yadokari: { funded: { ...a.holdings.yadokari.funded }, not_funded: { ...a.holdings.yadokari.not_funded } },
+      },
+      base: {
+        ascoe: { ...a.base.ascoe },
+        civichat: { ...a.base.civichat },
+        handbook: { ...a.base.handbook },
+        yadokari: { ...a.base.yadokari },
+      },
+    }))
+
+    const pids: ProjectId[] = ['ascoe', 'civichat', 'handbook', 'yadokari']
+    const rand = (n: number) => Math.floor(Math.random() * n)
+    const randEl = <T,>(arr: T[]): T => arr[rand(arr.length)]
+
+    for (let i = 0; i < count; i++) {
+      const trader = randEl(as.filter((a) => !a.isAdmin))
+      if (!trader) break
+      const pid = randEl(pids)
+      const scenario: Scenario = Math.random() < 0.5 ? 'funded' : 'not_funded'
+      const side: Side = Math.random() < 0.5 ? 'UP' : 'DOWN'
+      const action: 'buy' | 'sell' = Math.random() < 0.7 ? 'buy' : 'sell'
+      let shares = 1 + rand(50)
+
+      const prj = ps.find((p) => p.id === pid)!
+      const m = prj.markets[scenario]
+
+      if (action === 'buy') {
+        // コスト計算しつつ、残高に収まるように調整
+        let { cost } = tradeCost(m, side, shares)
+        if (trader.balance < cost) {
+          // ざっくりスケールダウン（1回）
+          const scale = trader.balance / Math.max(cost, 1e-9)
+          shares = Math.max(1, Math.floor(shares * scale))
+        }
+        const { cost: cost2, qUp2, qDown2 } = tradeCost(m, side, shares)
+        if (trader.balance < cost2 || shares <= 0) continue
+        // 反映
+        prj.markets[scenario] = { ...m, qUp: qUp2, qDown: qDown2 }
+        trader.balance -= cost2
+        trader.holdings[pid][scenario][side] += shares
+      } else {
+        const have = trader.holdings[pid][scenario][side]
+        if (have <= 0) continue
+        shares = Math.min(shares, have)
+        const { qUp2, qDown2, pre, post } = tradeCost(m, side, -shares)
+        const refund = pre - post
+        prj.markets[scenario] = { ...m, qUp: qUp2, qDown: qDown2 }
+        trader.balance += refund
+        trader.holdings[pid][scenario][side] -= shares
+      }
+    }
+
+    setProjects(ps)
+    setAccounts(as)
+  }
+
   const adminResolve = () => {
     if (!activeAccount.isAdmin || !resolution) return
     const { winner, values } = resolution
@@ -450,6 +544,7 @@ export default function MarketPage({
                 <p className="text-sm text-gray-600">
                   {markets.find((x) => x.id === marketId)?.overview ?? ''}
                 </p>
+                <Button variant="outline" onClick={() => { setHelpPage(0); setHelpOpen(true) }}>使い方</Button>
               </div>
             </header>
 
@@ -461,10 +556,11 @@ export default function MarketPage({
                     <span>管理者専用</span>
                   </div>
                   {phase === 'open' && (
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div className="text-sm font-medium">クリックで予測インパクトが最大なものに助成を確定します。decisionフェーズとして強制執行。</div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col items-stretch md:items-end gap-2">
                         <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => adminFixAtIndex(-1)}>今すぐ市場の予測を執行する</Button>
+                        <Button className="bg-gray-800 hover:bg-black text-white" onClick={() => simulateRandomTrades(40)}>ランダムな取引を実行</Button>
                       </div>
                     </div>
                   )}
@@ -733,6 +829,25 @@ export default function MarketPage({
 
         </div>
       </div>
+      {helpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setHelpOpen(false)} />
+          <div
+            className="relative bg-white/95 backdrop-blur rounded-lg shadow-xl w-[92vw] max-w-lg p-5 md:p-6 space-y-3"
+            onClick={() => setHelpPage((p) => (p + 1) % helpPages.length)}
+          >
+            <div className="text-xs text-gray-500">クリックで次へ（{helpPage + 1}/{helpPages.length}）</div>
+            {helpPages[helpPage]}
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="outline" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>閉じる</Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpPages.length) % helpPages.length) }}>前へ</Button>
+                <Button onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p + 1) % helpPages.length) }}>次へ</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

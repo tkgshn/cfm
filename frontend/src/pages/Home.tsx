@@ -27,9 +27,10 @@ const calcImpactAbs = (p: any) => {
 export default function Home() {
   return (
     <div className="min-h-dvh w-full bg-white">
-      <div className="mx-auto max-w-4xl p-4 space-y-4">
-        <h1 className="text-xl font-semibold">マーケット一覧</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="p-6 md:p-8">
+        <div className="mx-auto max-w-7xl space-y-4">
+          <h1 className="text-xl font-semibold">マーケット一覧</h1>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
           {markets.map((m) => (
             <Card
               key={m.id}
@@ -59,6 +60,7 @@ export default function Home() {
               </CardContent>
             </Card>
           ))}
+          </div>
         </div>
       </div>
     </div>
