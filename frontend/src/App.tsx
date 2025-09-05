@@ -65,11 +65,52 @@ export default function App() {
     ),
   ]
 
+  // 検索バー（ヘッダー）
+  const [search, setSearch] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchResults = useMemo(() => {
+    const q = search.trim()
+    if (!q) return [] as typeof markets
+    const lower = q.toLowerCase()
+    return markets.filter(m =>
+      m.name.toLowerCase().includes(lower) ||
+      m.title.toLowerCase().includes(lower) ||
+      (m.overview?.toLowerCase().includes(lower) ?? false)
+    )
+  }, [search])
+  const goToMarket = (id: string) => {
+    setSearch('')
+    setSearchOpen(false)
+    window.location.hash = `market/${id}`
+  }
+
   const Header = () => (
     <div className="w-full border-b bg-white sticky top-0 z-10">
       <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <a href="#" className="text-sm font-semibold hover:opacity-80">条件付き市場のシミュレーション</a>
+          <div className="relative">
+            <input
+              type="text"
+              className="h-8 w-48 md:w-64 border rounded px-2 text-xs"
+              placeholder="市場を検索"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setSearchOpen(true) }}
+              onFocus={() => setSearchOpen(true)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && searchResults[0]) goToMarket(searchResults[0].id) }}
+              onBlur={() => setTimeout(() => setSearchOpen(false), 120)}
+            />
+            {searchOpen && searchResults.length > 0 && (
+              <div className="absolute z-20 mt-1 w-full bg-white border rounded shadow text-xs max-h-64 overflow-auto">
+                {searchResults.map((m) => (
+                  <button key={m.id} className="w-full text-left px-2 py-1 hover:bg-gray-50" onMouseDown={(e) => e.preventDefault()} onClick={() => goToMarket(m.id)}>
+                    <div className="font-medium truncate">{m.name}</div>
+                    <div className="text-[10px] text-gray-500 truncate">{m.title}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button className="h-7 px-2 text-xs border rounded hover:bg-gray-50" onClick={() => { setHelpPage(0); setHelpOpen(true) }}>使い方</button>
         </div>
         <div className="flex items-center gap-2">

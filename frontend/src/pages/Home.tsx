@@ -30,7 +30,7 @@ export default function Home() {
       <div className="p-6 md:p-8">
         <div className="mx-auto max-w-7xl space-y-4">
           <h1 className="text-xl font-semibold">マーケット一覧</h1>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(420px,1fr))] gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
           {markets.map((m) => (
             <Card
               key={m.id}
@@ -39,19 +39,19 @@ export default function Home() {
               role="button"
               tabIndex={0}
             >
-              <CardContent className="p-6 space-y-3">
+              <CardContent className="p-4 space-y-2">
                 {/* 市場詳細と同一のタイトルを表示 */}
-                <div className="text-xl font-medium leading-snug">{m.title}</div>
-                <div className="text-sm text-gray-600">{m.overview}</div>
+                <div className="text-lg font-medium">{m.title}</div>
+                <div className="text-xs text-gray-600">{m.overview}</div>
 
                 {/* プロジェクトごとの予測インパクト（簡易プレビュー） */}
-                <div className="mt-3 divide-y">
+                <div className="mt-2 divide-y">
                   {previewProjects.map((p) => {
                     const impact = calcImpactAbs(p)
                     return (
-                      <div key={p.id} className="py-3 flex items-center justify-between">
-                        <div className="text-base font-medium">{p.name}</div>
-                        <div className="text-base text-gray-700">{impact.toFixed(0)}</div>
+                      <div key={p.id} className="py-2 flex items-center justify-between">
+                        <div className="text-sm font-medium">{p.name}</div>
+                        <div className="text-sm text-gray-700">{impact.toFixed(0)}</div>
                       </div>
                     )
                   })}

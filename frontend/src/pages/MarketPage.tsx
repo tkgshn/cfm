@@ -168,6 +168,15 @@ export default function MarketPage({
     } catch {}
   }, [projects, STORAGE_KEY])
 
+  // アンマウント直前にも確実に保存（ナビゲーション直後でも消えないように）
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
+      } catch {}
+    }
+  }, [projects, STORAGE_KEY])
+
   useEffect(() => {
     if (tickerRef.current) window.clearInterval(tickerRef.current)
     tickerRef.current = window.setInterval(() => {
@@ -445,6 +454,7 @@ export default function MarketPage({
 
     setProjects(ps)
     setAccounts(as)
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ps)) } catch {}
   }
 
   // ===== すべての取引を初期化 =====
