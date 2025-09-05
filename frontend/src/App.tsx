@@ -167,7 +167,9 @@ export default function App() {
           if (line.startsWith('## ')) {
             if (current) {
               const html = marked.parse(current.bodyLines.join('\n').trim(), { breaks: true }) as string
-              const html2 = html.replace(/<a\s+(?![^>]*target=)[^>]*href=/g, '<a target="_blank" rel="noopener noreferrer" href=')
+              const html2 = html
+                .replace(/<a\s+(?![^>]*target=)[^>]*href=/g, '<a target="_blank" rel="noopener noreferrer" href=')
+                .replace(/<img(?![^>]*loading=)/g, '<img loading="lazy"')
               secs.push({ title: current.title, bodyHtml: html2 })
             }
             current = { title: line.replace(/^##\s+/, ''), bodyLines: [] }
@@ -181,7 +183,9 @@ export default function App() {
         }
         if (current) {
           const html = marked.parse(current.bodyLines.join('\n').trim(), { breaks: true }) as string
-          const html2 = html.replace(/<a\s+(?![^>]*target=)[^>]*href=/g, '<a target="_blank" rel="noopener noreferrer" href=')
+          const html2 = html
+            .replace(/<a\s+(?![^>]*target=)[^>]*href=/g, '<a target="_blank" rel="noopener noreferrer" href=')
+            .replace(/<img(?![^>]*loading=)/g, '<img loading="lazy"')
           secs.push({ title: current.title, bodyHtml: html2 })
         }
         setHelpSections(secs)
