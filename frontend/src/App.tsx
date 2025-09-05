@@ -41,10 +41,37 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  // 使い方モーダル（ヘッダーから常時開ける）
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [helpPage, setHelpPage] = useState(0)
+  const helpPages: React.ReactNode[] = [
+    (
+      <div className="space-y-2">
+        <div className="text-base font-medium">ようこそ</div>
+        <p className="text-sm text-gray-700">各プロジェクトの「投資あり/なし」で1カ月後の申請数を予測し、上がる（UP）/下がる（DOWN）に賭けます。</p>
+      </div>
+    ),
+    (
+      <div className="space-y-2">
+        <div className="text-base font-medium">シナリオと取引</div>
+        <p className="text-sm text-gray-700">右のパネルでプロジェクトとシナリオを選び、金額を入力して購入します。スライダーで自分の予想を調整し、損益の目安を確認できます。</p>
+      </div>
+    ),
+    (
+      <div className="space-y-2">
+        <div className="text-base font-medium">資金配分と清算</div>
+        <p className="text-sm text-gray-700">予測期間後、予測インパクト最大のプロジェクトに1億円を配分し、その1カ月後の実測値で清算します。</p>
+      </div>
+    ),
+  ]
+
   const Header = () => (
     <div className="w-full border-b bg-white sticky top-0 z-10">
       <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
-        <a href="#" className="text-sm font-semibold hover:opacity-80">条件付き市場のシミュレーション</a>
+        <div className="flex items-center gap-3">
+          <a href="#" className="text-sm font-semibold hover:opacity-80">条件付き市場のシミュレーション</a>
+          <button className="h-7 px-2 text-xs border rounded hover:bg-gray-50" onClick={() => { setHelpPage(0); setHelpOpen(true) }}>使い方</button>
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600">アカウント</span>
           <select className="h-8 border rounded px-2 text-xs" value={activeAccountId} onChange={(e) => setActiveAccountId(e.target.value)}>
@@ -77,6 +104,23 @@ export default function App() {
           activeAccountId={activeAccountId}
           setActiveAccountId={setActiveAccountId}
         />
+        {helpOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setHelpOpen(false)} />
+            <div
+              className="relative bg-white/95 backdrop-blur rounded-lg shadow-xl w-[92vw] max-w-lg p-5 md:p-6 space-y-3"
+              onClick={() => { if (helpPage === helpPages.length - 1) setHelpOpen(false); else setHelpPage((p) => p + 1) }}
+            >
+              <button aria-label="閉じる" className="absolute top-2 right-2 text-gray-600 hover:text-black" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>✕</button>
+              <div className="text-xs text-gray-500">クリックで次へ（{helpPage + 1}/{helpPages.length}）</div>
+              {helpPages[helpPage]}
+              <div className="flex items-center justify-end pt-2 gap-2">
+                <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpPages.length) % helpPages.length) }}>前へ</button>
+                <button className="h-8 px-3 text-xs border rounded bg-black text-white" onClick={(e) => { e.stopPropagation(); helpPage === helpPages.length - 1 ? setHelpOpen(false) : setHelpPage((p) => p + 1) }}>{helpPage === helpPages.length - 1 ? '閉じる' : '次へ'}</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -84,6 +128,23 @@ export default function App() {
     <div>
       <Header />
       <Home />
+      {helpOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setHelpOpen(false)} />
+          <div
+            className="relative bg-white/95 backdrop-blur rounded-lg shadow-xl w-[92vw] max-w-lg p-5 md:p-6 space-y-3"
+            onClick={() => { if (helpPage === helpPages.length - 1) setHelpOpen(false); else setHelpPage((p) => p + 1) }}
+          >
+            <button aria-label="閉じる" className="absolute top-2 right-2 text-gray-600 hover:text-black" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>✕</button>
+            <div className="text-xs text-gray-500">クリックで次へ（{helpPage + 1}/{helpPages.length}）</div>
+            {helpPages[helpPage]}
+            <div className="flex items-center justify-end pt-2 gap-2">
+              <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpPages.length) % helpPages.length) }}>前へ</button>
+              <button className="h-8 px-3 text-xs border rounded bg-black text-white" onClick={(e) => { e.stopPropagation(); helpPage === helpPages.length - 1 ? setHelpOpen(false) : setHelpPage((p) => p + 1) }}>{helpPage === helpPages.length - 1 ? '閉じる' : '次へ'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

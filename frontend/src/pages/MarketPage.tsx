@@ -109,28 +109,6 @@ export default function MarketPage({
       }
     } catch {}
   }, [STORAGE_KEY])
-  const [helpOpen, setHelpOpen] = useState(false)
-  const [helpPage, setHelpPage] = useState(0)
-  const helpPages: React.ReactNode[] = [
-    (
-      <div className="space-y-2">
-        <div className="text-base font-medium">ようこそ</div>
-        <p className="text-sm text-gray-700">このマーケットでは、各プロジェクトに1億円を投資した場合としない場合の「1カ月後の申請数」を予測して取引します。</p>
-      </div>
-    ),
-    (
-      <div className="space-y-2">
-        <div className="text-base font-medium">シナリオと取引</div>
-        <p className="text-sm text-gray-700">右側パネルで「投資された場合／投資されなかった場合（通常通り）」を選び、市場予想より上がる（UP）/下がる（DOWN）を選択して金額を入力します。</p>
-      </div>
-    ),
-    (
-      <div className="space-y-2">
-        <div className="text-base font-medium">資金配分と清算</div>
-        <p className="text-sm text-gray-700">予測期間後、予測インパクトが最大のプロジェクトに実際に1億円を配分し、1カ月後の実測値で清算されます。</p>
-      </div>
-    ),
-  ]
 
   type ImpactPoint = { t: number } & Record<ProjectId, number>
   const [impactHistory, setImpactHistory] = useState<ImpactPoint[]>(() => [{ t: nowTs(), ascoe: 0, civichat: 0, handbook: 0, yadokari: 0 }])
@@ -182,6 +160,13 @@ export default function MarketPage({
     setImpactHistory((h) => [...h, { t, ascoe: imp.ascoe, civichat: imp.civichat, handbook: imp.handbook, yadokari: imp.yadokari }])
     setPerProjectHistory((h) => [...h, snapshotPerProject(projects)])
   }, [projects])
+
+  // プロジェクト状態を保存（ホームへ戻っても保持）
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
+    } catch {}
+  }, [projects, STORAGE_KEY])
 
   useEffect(() => {
     if (tickerRef.current) window.clearInterval(tickerRef.current)
@@ -462,6 +447,34 @@ export default function MarketPage({
     setAccounts(as)
   }
 
+  // ===== すべての取引を初期化 =====
+  const resetAllTrades = () => {
+    if (!window.confirm('すべての取引を初期化します。よろしいですか？')) return
+    const resetProjects = initialProjects.map((p) => ({
+      ...p,
+      markets: {
+        funded: { qUp: 0, qDown: 0, b: DEFAULT_B },
+        not_funded: { qUp: 0, qDown: 0, b: DEFAULT_B },
+      },
+    }))
+    setProjects(resetProjects)
+    const STARTING_BALANCE = 1000
+    setAccounts((as) => as.map((a) => ({
+      ...a,
+      balance: STARTING_BALANCE,
+      holdings: emptyHoldings(),
+      base: emptyBase(),
+    })))
+    setFrozenNot({ ascoe: false, civichat: false, handbook: false, yadokari: false })
+    setFrozenFundedZero({ ascoe: false, civichat: false, handbook: false, yadokari: false })
+    setPhase('open')
+    setPhaseMarkers([{ t: nowTs(), label: 'Open' }])
+    setResolution(null)
+    setImpactHistory([{ t: nowTs(), ascoe: 0, civichat: 0, handbook: 0, yadokari: 0 }])
+    setPerProjectHistory([snapshotPerProject(resetProjects)])
+    try { localStorage.removeItem(STORAGE_KEY) } catch {}
+  }
+
   const adminResolve = () => {
     if (!activeAccount.isAdmin || !resolution) return
     const { winner, values } = resolution
@@ -555,7 +568,7 @@ export default function MarketPage({
                 <p className="text-sm text-gray-600">
                   {markets.find((x) => x.id === marketId)?.overview ?? ''}
                 </p>
-                <Button variant="outline" onClick={() => { setHelpPage(0); setHelpOpen(true) }}>使い方</Button>
+                {/* 使い方はアプリヘッダーに常時表示 */}
               </div>
             </header>
 
@@ -570,8 +583,9 @@ export default function MarketPage({
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div className="text-sm font-medium">クリックで予測インパクトが最大なものに助成を確定します。decisionフェーズとして強制執行。</div>
                       <div className="flex flex-col items-stretch md:items-end gap-2">
-                        <Button className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => adminFixAtIndex(-1)}>今すぐ市場の予測を執行する</Button>
-                        <Button className="bg-gray-800 hover:bg-black text-white" onClick={() => simulateRandomTrades(40)}>ランダムな取引を実行</Button>
+                        <Button variant="primary" onClick={() => adminFixAtIndex(-1)}>今すぐ市場の予測を執行する</Button>
+                        <Button variant="secondary" onClick={() => simulateRandomTrades(40)}>ランダムな取引を実行</Button>
+                        <Button variant="destructive" onClick={resetAllTrades}>すべての取引を初期化</Button>
                       </div>
                     </div>
                   )}
@@ -840,25 +854,7 @@ export default function MarketPage({
 
         </div>
       </div>
-      {helpOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setHelpOpen(false)} />
-          <div
-            className="relative bg-white/95 backdrop-blur rounded-lg shadow-xl w-[92vw] max-w-lg p-5 md:p-6 space-y-3"
-            onClick={() => setHelpPage((p) => (p + 1) % helpPages.length)}
-          >
-            <div className="text-xs text-gray-500">クリックで次へ（{helpPage + 1}/{helpPages.length}）</div>
-            {helpPages[helpPage]}
-            <div className="flex items-center justify-between pt-2">
-              <Button variant="outline" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>閉じる</Button>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpPages.length) % helpPages.length) }}>前へ</Button>
-                <Button onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p + 1) % helpPages.length) }}>次へ</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 使い方モーダルはAppヘッダー配下で管理 */}
     </div>
   )
 }
