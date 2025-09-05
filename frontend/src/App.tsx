@@ -165,7 +165,11 @@ export default function App() {
         for (const raw of lines) {
           const line = raw.trimEnd()
           if (line.startsWith('## ')) {
-            if (current) secs.push({ title: current.title, bodyHtml: marked.parse(current.bodyLines.join('\n').trim()) as string })
+            if (current) {
+              const html = marked.parse(current.bodyLines.join('\n').trim(), { breaks: true }) as string
+              const html2 = html.replace(/<a\s+(?![^>]*target=)[^>]*href=/g, '<a target="_blank" rel="noopener noreferrer" href=')
+              secs.push({ title: current.title, bodyHtml: html2 })
+            }
             current = { title: line.replace(/^##\s+/, ''), bodyLines: [] }
           } else {
             if (!current) {
@@ -175,7 +179,11 @@ export default function App() {
             current.bodyLines.push(raw)
           }
         }
-        if (current) secs.push({ title: current.title, bodyHtml: marked.parse(current.bodyLines.join('\n').trim()) as string })
+        if (current) {
+          const html = marked.parse(current.bodyLines.join('\n').trim(), { breaks: true }) as string
+          const html2 = html.replace(/<a\s+(?![^>]*target=)[^>]*href=/g, '<a target="_blank" rel="noopener noreferrer" href=')
+          secs.push({ title: current.title, bodyHtml: html2 })
+        }
         setHelpSections(secs)
         setHelpPage(0)
       })
@@ -271,15 +279,14 @@ export default function App() {
                 <div className="absolute inset-0 bg-black/50" onClick={() => setHelpOpen(false)} />
                 <div
                   className="relative bg-white/95 backdrop-blur rounded-lg shadow-xl w-[92vw] max-w-lg p-5 md:p-6 space-y-3"
-              onClick={() => { if (helpPage === helpSections.length - 1) setHelpOpen(false); else setHelpPage((p) => p + 1) }}
                 >
                   <button aria-label="閉じる" className="absolute top-2 right-2 text-gray-600 hover:text-black" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>✕</button>
               <div className="text-xs text-gray-500">{helpPage + 1}/{helpSections.length}</div>
               <div className="space-y-2">
                 <div className="text-base font-medium">{helpSections[helpPage].title}</div>
-                <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: helpSections[helpPage].bodyHtml }} />
+                <div className="markdown-body max-h-[60vh] overflow-auto" dangerouslySetInnerHTML={{ __html: helpSections[helpPage].bodyHtml }} />
               </div>
-              <div className="flex items-center justify-end pt-2 gap-2">
+              <div className="flex items-center justify-between pt-2 gap-2">
                 <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpSections.length) % helpSections.length) }}>前へ</button>
                 <button className="h-8 px-3 text-xs border rounded bg-black text-white" onClick={(e) => { e.stopPropagation(); helpPage === helpSections.length - 1 ? setHelpOpen(false) : setHelpPage((p) => p + 1) }}>{helpPage === helpSections.length - 1 ? '閉じる' : '次へ'}</button>
               </div>
@@ -306,15 +313,14 @@ export default function App() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setHelpOpen(false)} />
           <div
             className="relative bg-white/95 backdrop-blur rounded-lg shadow-xl w-[92vw] max-w-lg p-5 md:p-6 space-y-3"
-            onClick={() => { if (helpPage === helpSections.length - 1) setHelpOpen(false); else setHelpPage((p) => p + 1) }}
           >
             <button aria-label="閉じる" className="absolute top-2 right-2 text-gray-600 hover:text-black" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>✕</button>
             <div className="text-xs text-gray-500">{helpPage + 1}/{helpSections.length}</div>
             <div className="space-y-2">
               <div className="text-base font-medium">{helpSections[helpPage].title}</div>
-              <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: helpSections[helpPage].bodyHtml }} />
+              <div className="markdown-body max-h-[60vh] overflow-auto" dangerouslySetInnerHTML={{ __html: helpSections[helpPage].bodyHtml }} />
             </div>
-            <div className="flex items-center justify-end pt-2 gap-2">
+            <div className="flex items-center justify-between pt-2 gap-2">
               <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpSections.length) % helpSections.length) }}>前へ</button>
               <button className="h-8 px-3 text-xs border rounded bg-black text-white" onClick={(e) => { e.stopPropagation(); helpPage === helpSections.length - 1 ? setHelpOpen(false) : setHelpPage((p) => p + 1) }}>{helpPage === helpSections.length - 1 ? '閉じる' : '次へ'}</button>
             </div>
