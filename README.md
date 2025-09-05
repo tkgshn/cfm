@@ -51,7 +51,7 @@ CFM（条件付き市場）プロトタイプ
 
 CFM は、「あるプロジェクトに資金を投資した場合」と「投資しなかった場合」という 条件付きの未来 を比較し、その結果の差（インパクト）を予測するための予測市場モデルです。
 
-- 開発者: tkgshn（[@0xtkgshn](https://github.com/0xtkgshn)）
+- 開発者: tkgshn（[@0xtkgshn](https://twitter.com/0xtkgshn)）
 - ソースコード: [https://github.com/tkgshn/cfm](https://github.com/tkgshn/cfm)
 
 ### 条件付き市場と予測インパクト

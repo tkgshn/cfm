@@ -4,7 +4,7 @@
 
 CFM は、「あるプロジェクトに資金を投資した場合」と「投資しなかった場合」という 条件付きの未来 を比較し、その結果の差（インパクト）を予測するための予測市場モデルです
 
-- 開発者: tkgshn（[@0xtkgshn](https://github.com/0xtkgshn)）
+- 開発者: tkgshn（[@0xtkgshn](https://twitter.com/0xtkgshn)）
 - ソースコード: [https://github.com/tkgshn/cfm](https://github.com/tkgshn/cfm)
 
 ## 条件付き市場と予測インパクト
@@ -66,3 +66,13 @@ CFM が使うのは スカラー市場（Scalar Market） と呼ばれる仕組�
 4. みつもりヤドカリくん
 
 各プロジェクトに「1億円を追加投資した場合」と「投資しない場合」の、それぞれにおける「資金配分から1カ月後の月間申請件数」を予測します。
+
+## 関連リンク
+
+- Butter Markets — Mechanism Overview  
+  https://docs.butter.markets/core-concepts/mechanism-overview  
+  予測市場/条件付き市場におけるメカニズムの概説。市場デザイン、プライシング、流動性、清算の考え方など、実装に踏み込んだ整理がまとまっています。
+
+- Gnosis Conditional Tokens — Introduction（アーカイブ）  
+  https://web.archive.org/web/20220825172113/https://docs.gnosis.io/conditionaltokens/docs/introduction1/  
+  条件付きトークンの基礎概念まとめ。アウトカム空間の分割、条件の組み合わせ、決定（オラクル）と清算の仕組みなど、条件付き結果を資産として表現する際の定石が確認できます。

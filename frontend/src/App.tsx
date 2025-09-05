@@ -65,6 +65,22 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  // SEO: ルートに応じたページタイトル
+  useEffect(() => {
+    const base = 'CFM（条件付き市場）プロトタイプ'
+    if (route.name === 'market') {
+      const m = markets.find((mm) => mm.id === route.id)
+      if (m) {
+        document.title = `${m.name} - ${base}`
+        return
+      }
+    } else if (route.name === 'portfolio') {
+      document.title = `ポートフォリオ - ${base}`
+      return
+    }
+    document.title = base
+  }, [route])
+
   // ===== 総資産（ポジション即時売却想定）の時価評価 =====
   const lmsrCost = (qUp: number, qDown: number, b: number) => b * Math.log(Math.exp((qUp || 0) / (b || 180)) + Math.exp((qDown || 0) / (b || 180)))
   const priceUp = (qUp: number, qDown: number, b: number) => {
@@ -78,7 +94,7 @@ export default function App() {
     window.addEventListener('cfm:projects-updated', onProjects as any)
     return () => window.removeEventListener('cfm:projects-updated', onProjects as any)
   }, [])
-  const activeMarketId = route.name === 'market' ? route.id : 'default'
+  const activeMarketId = route.name === 'market' ? route.id : 'id'
   const totalAssets = useMemo(() => {
     const a = activeAccount
     if (!a) return 0
