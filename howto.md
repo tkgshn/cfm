@@ -1,20 +1,11 @@
-## このプロジェクトについて
+## このプロジェクトの使い方（How To）
 
-本プロジェクトは「条件付き市場（Conditional Funding Market: CFM）」の考え方を学ぶための、シミュレーションツールです。
+本プロジェクトは「条件付き市場（Conditional Funding Market: CFM）」の考え方を学ぶための、クライアントサイドのみのシミュレーション UI です。React + Vite で動作し、LMSR を用いた価格・原価計算により、トレードのコストと市場価格が一貫して決まります。
 
-CFMは、「あるプロジェクトに資金を投資した場合」と「投資しなかった場合」という 条件付きの未来 を比較し、その結果の差（インパクト）を予測するための予測市場モデルです
+- 開発者: tkgshn（@0xtkgshn）
+- ソースコード: https://github.com/tkgshn/cfm
 
-- 開発者: tkgshn（[@0xtkgshn](https://github.com/0xtkgshn)）
-- ソースコード: [https://github.com/tkgshn/cfm](https://github.com/tkgshn/cfm)
-
-
-## 基本構造
-各プロジェクトには 2つの条件付き市場 が存在する
-
-- If Funded（資金を受け取った場合）
-- If Not Funded（資金を受け取らなかった場合）
-
-これらに対して、
+---
 
 ## 何ができるか
 
@@ -90,3 +81,4 @@ CFMは、「あるプロジェクトに資金を投資した場合」と「投�
 - 主要なロジックは `frontend/src/pages/MarketPage.tsx` にあります（LMSR 関数、取引UI、履歴、管理者処理など）。
 - 市場メタデータは `frontend/src/lib/markets.ts`。ホームのカードは `frontend/src/pages/Home.tsx`。
 - ポートフォリオは `frontend/src/pages/Portfolio.tsx`。保有一覧カードは `frontend/src/components/UserPositionsAllCard.tsx`。
+

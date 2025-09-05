@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { marked } from 'marked'
 import { InfoIcon } from '@/components/ui/icons'
 import Home from '@/pages/Home'
 import MarketPage from '@/pages/MarketPage'
@@ -152,19 +153,19 @@ export default function App() {
   // 使い方モーダル（ヘッダー）: public/howto.md から生成
   const [helpOpen, setHelpOpen] = useState(false)
   const [helpPage, setHelpPage] = useState(0)
-  const [helpSections, setHelpSections] = useState<{ title: string; body: string }[]>([])
+  const [helpSections, setHelpSections] = useState<{ title: string; bodyHtml: string }[]>([])
   useEffect(() => {
     // 初回のみ取得
     fetch('/howto.md')
       .then((r) => r.text())
       .then((txt) => {
-        const secs: { title: string; body: string }[] = []
+        const secs: { title: string; bodyHtml: string }[] = []
         const lines = txt.split(/\r?\n/)
         let current: { title: string; bodyLines: string[] } | null = null
         for (const raw of lines) {
           const line = raw.trimEnd()
           if (line.startsWith('## ')) {
-            if (current) secs.push({ title: current.title, body: current.bodyLines.join('\n').trim() })
+            if (current) secs.push({ title: current.title, bodyHtml: marked.parse(current.bodyLines.join('\n').trim()) as string })
             current = { title: line.replace(/^##\s+/, ''), bodyLines: [] }
           } else {
             if (!current) {
@@ -174,7 +175,7 @@ export default function App() {
             current.bodyLines.push(raw)
           }
         }
-        if (current) secs.push({ title: current.title, body: current.bodyLines.join('\n').trim() })
+        if (current) secs.push({ title: current.title, bodyHtml: marked.parse(current.bodyLines.join('\n').trim()) as string })
         setHelpSections(secs)
         setHelpPage(0)
       })
@@ -276,7 +277,7 @@ export default function App() {
               <div className="text-xs text-gray-500">{helpPage + 1}/{helpSections.length}</div>
               <div className="space-y-2">
                 <div className="text-base font-medium">{helpSections[helpPage].title}</div>
-                <div className="text-sm text-gray-700 whitespace-pre-wrap">{helpSections[helpPage].body}</div>
+                <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: helpSections[helpPage].bodyHtml }} />
               </div>
               <div className="flex items-center justify-end pt-2 gap-2">
                 <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpSections.length) % helpSections.length) }}>前へ</button>
@@ -311,7 +312,7 @@ export default function App() {
             <div className="text-xs text-gray-500">{helpPage + 1}/{helpSections.length}</div>
             <div className="space-y-2">
               <div className="text-base font-medium">{helpSections[helpPage].title}</div>
-              <div className="text-sm text-gray-700 whitespace-pre-wrap">{helpSections[helpPage].body}</div>
+              <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: helpSections[helpPage].bodyHtml }} />
             </div>
             <div className="flex items-center justify-end pt-2 gap-2">
               <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpSections.length) % helpSections.length) }}>前へ</button>

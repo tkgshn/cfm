@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useLayoutEffect, type Dispatch, type SetStateAction } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -82,6 +82,7 @@ export default function MarketPage({
   const HISTORY_PER_KEY = `cfm:perProjectHistory:${marketId}`
   const PHASE_MARKERS_KEY = `cfm:phaseMarkers:${marketId}`
   const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [hydrated, setHydrated] = useState<boolean>(false)
   const activeAccount = useMemo(() => accounts.find((a) => a.id === activeAccountId)!, [accounts, activeAccountId])
 
   const [selectedProject, setSelectedProject] = useState<ProjectId | null>(null)
@@ -109,8 +110,8 @@ export default function MarketPage({
       window.dispatchEvent(new CustomEvent('cfm:projects-updated', { detail: { marketId, projects: next } }))
     } catch {}
   }
-  // 永続化されたプロジェクト状態の復元
-  useEffect(() => {
+  // 永続化されたプロジェクト状態の復元（初回描画前に揃えるため layoutEffect）
+  useLayoutEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
@@ -132,6 +133,7 @@ export default function MarketPage({
         const parsedMk = JSON.parse(mkRaw)
         if (Array.isArray(parsedMk) && parsedMk.length) setPhaseMarkers(parsedMk)
       }
+      setHydrated(true)
     } catch {}
   }, [STORAGE_KEY])
 
@@ -180,11 +182,12 @@ export default function MarketPage({
   }
 
   useEffect(() => {
+    if (!hydrated) return
     const t = nowTs()
     const imp = snapshotImpactAbs(projects)
     setImpactHistory((h) => [...h, { t, ascoe: imp.ascoe, civichat: imp.civichat, handbook: imp.handbook, yadokari: imp.yadokari }])
     setPerProjectHistory((h) => [...h, snapshotPerProject(projects)])
-  }, [projects])
+  }, [projects, hydrated])
 
   // プロジェクト状態を保存（ホームへ戻っても保持）
   useEffect(() => {
@@ -225,6 +228,7 @@ export default function MarketPage({
   }, [impactHistory, perProjectHistory, phaseMarkers, HISTORY_IMPACT_KEY, HISTORY_PER_KEY, PHASE_MARKERS_KEY])
 
   useEffect(() => {
+    if (!hydrated) return
     if (tickerRef.current) window.clearInterval(tickerRef.current)
     tickerRef.current = window.setInterval(() => {
       const t = nowTs()
@@ -235,7 +239,7 @@ export default function MarketPage({
     return () => {
       if (tickerRef.current) window.clearInterval(tickerRef.current)
     }
-  }, [projects])
+  }, [projects, hydrated])
 
   const buy = (pid: ProjectId, scenario: Scenario, side: Side, shares: number) => {
     if (shares <= 0) return
