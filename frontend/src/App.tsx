@@ -98,7 +98,7 @@ export default function App() {
     window.addEventListener('cfm:projects-updated', onProjects as any)
     return () => window.removeEventListener('cfm:projects-updated', onProjects as any)
   }, [])
-  const activeMarketId = route.name === 'market' ? route.id : 'id'
+  const activeMarketId = route.name === 'market' ? route.id : '1'
   const totalAssets = useMemo(() => {
     const a = activeAccount
     if (!a) return 0
