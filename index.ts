@@ -296,7 +296,7 @@ export default function App() {
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between" >
                         <h1 className="text-2xl font-bold" > それぞれの社会保障制度の診断プロジェクトに1億円を投資した場合、各プロジェクトの申請数を予測する。</h1>
                             < div className = "flex items-center gap-2" >
-                                <span className="text-sm text-gray-600" > アカウント </span>
+                                <span className="text-sm text-gray-600" > ログイン中のアカウント </span>
                                     < Select value = { activeAccountId } onValueChange = { setActiveAccountId } >
                                         <SelectTrigger className="w-40" > <SelectValue /></SelectTrigger >
                                             <SelectContent>
