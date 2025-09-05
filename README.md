@@ -71,5 +71,25 @@ CFM が使うのはスカラー市場（Scalar Market）。レンジ [min, max] 
 ![今回](./frontend/public/screenshot3.png)
 「それぞれの社会保障制度の診断プロジェクトに 1 億円を投資した場合の申請数予測」をテーマに、4 プロジェクトを対象にしています。
 
+## デモ動画
+
+<div align="center">
+  <iframe
+    src="https://www.loom.com/embed/fe787647b00e4f33a2be2745f99bc8ff?sid=161cc4e4-97a7-403f-888d-c2d9aea647c7"
+    style="width:100%;max-width:880px;height:495px;border:0;"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+</div>
+
+<div align="center">
+  <iframe
+    src="https://www.loom.com/embed/ef47ed3c8ad3417fab96d04a42fca36f?sid=451538cc-4b49-4d59-b3ec-b5cac8d3462e"
+    style="width:100%;max-width:880px;height:495px;border:0;"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+</div>
+
 ライセンス
 - 本リポジトリ全体のライセンスは未定義です。別途指定がある場合を除き、社内検証用途を想定しています。
