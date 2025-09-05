@@ -1,23 +1,23 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import type { Project, Holdings, ProjectId } from '@/lib/types'
+import type { Holdings, ProjectId } from '@/lib/types'
 
 type Props = {
-  projects: Project[]
+  items: { id: ProjectId; name: string }[]
   holdings: Holdings
   className?: string
 }
 
 const fmt = (n: number) => n.toFixed(2)
 
-export const UserPositionsAllCard: React.FC<Props> = ({ projects, holdings, className }) => {
+export const UserPositionsAllCard: React.FC<Props> = ({ items, holdings, className }) => {
   return (
     <Card className={`shadow ${className ?? ''}`}>
       <CardContent className="p-4 space-y-2">
         <div className="text-sm font-medium">あなたのポジション（全プロジェクト）</div>
         <div className="text-[11px] text-gray-600">Funded/Not Funded × UP/DOWN</div>
         <div className="divide-y">
-          {projects.map((p) => {
+          {items.map((p) => {
             const h = holdings[p.id as ProjectId]
             return (
               <div key={p.id} className="py-2">
@@ -42,4 +42,3 @@ export const UserPositionsAllCard: React.FC<Props> = ({ projects, holdings, clas
 }
 
 export default UserPositionsAllCard
-

@@ -2,15 +2,17 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { InfoIcon } from '@/components/ui/icons'
 import Home from '@/pages/Home'
 import MarketPage from '@/pages/MarketPage'
+import Portfolio from '@/pages/Portfolio'
 import { markets } from '@/lib/markets'
 import type { Account, BaseHoldings, Holdings } from '@/lib/types'
 
-type Route = { name: 'home' } | { name: 'market'; id: string }
+type Route = { name: 'home' } | { name: 'market'; id: string } | { name: 'portfolio' }
 
 const parseHash = (): Route => {
   const h = window.location.hash.replace(/^#/, '')
   const m = h.match(/^market\/(.+)$/)
   if (m) return { name: 'market', id: m[1] }
+  if (h === 'portfolio') return { name: 'portfolio' }
   return { name: 'home' }
 }
 
@@ -118,8 +120,8 @@ export default function App() {
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-600">残高: <b>{activeAccount?.balance.toFixed(2)}</b> USDC</span>
-          <span className="text-xs text-gray-600">ログイン中のアカウント: </span>
+          <span className="text-xs text-gray-600">残高: <a className="underline font-semibold" href="#portfolio">{activeAccount?.balance.toFixed(2)}</a> USDC</span>
+          <span className="text-xs text-gray-600"></span>
           <select className="h-8 border rounded px-2 text-xs" value={activeAccountId} onChange={(e) => setActiveAccountId(e.target.value)}>
             {accounts.map((a) => (<option key={a.id} value={a.id}>{a.name}{a.isAdmin ? ' 管理者' : ''}</option>))}
           </select>
@@ -166,6 +168,14 @@ export default function App() {
             </div>
           </div>
         )}
+      </div>
+    )
+  }
+  if (route.name === 'portfolio') {
+    return (
+      <div>
+        <Header />
+        <Portfolio account={activeAccount} />
       </div>
     )
   }

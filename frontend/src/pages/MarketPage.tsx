@@ -864,7 +864,7 @@ export default function MarketPage({
                 </div>
               </CardContent>
             </Card>
-            <UserPositionsAllCard projects={projects} holdings={activeAccount.holdings} />
+            <UserPositionsAllCard items={projects.map(p => ({ id: p.id, name: p.name }))} holdings={activeAccount.holdings} />
 
           </div>
 
