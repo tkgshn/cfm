@@ -99,6 +99,10 @@ export default function MarketPage({
     handbook: { funded: 5000, not_funded: 5000 },
     yadokari: { funded: 5000, not_funded: 5000 },
   })
+  const persistProjects = (next: Project[]) => {
+    setProjects(next)
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch {}
+  }
   // 永続化されたプロジェクト状態の復元
   useEffect(() => {
     try {
@@ -199,7 +203,8 @@ export default function MarketPage({
       alert('残高不足')
       return
     }
-    setProjects((ps) => ps.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } }))))
+    const next = projects.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } })))
+    persistProjects(next)
     setAccounts((as) => as.map((a) => (a.id !== activeAccount.id ? a : ({
       ...a,
       balance: a.balance - cost,
@@ -219,7 +224,8 @@ export default function MarketPage({
     // LMSR厳守: deltaを負にしてpre/post差分で払い戻し
     const { qUp2, qDown2, pre, post } = tradeCost(m, side, -shares)
     const refund = pre - post
-    setProjects((ps) => ps.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } }))))
+    const next = projects.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } })))
+    persistProjects(next)
     setAccounts((as) => as.map((a) => (a.id !== activeAccount.id ? a : ({
       ...a,
       balance: a.balance + refund,
@@ -309,7 +315,8 @@ export default function MarketPage({
       if (delta <= 0) return
       const { cost, qUp2, qDown2 } = tradeCost(m, 'UP', delta)
       if (activeAccount.balance < cost) return alert('残高不足')
-      setProjects((ps) => ps.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } }))))
+      const next = projects.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } })))
+      persistProjects(next)
       setAccounts((as) => as.map((a) => (a.id !== activeAccount.id ? a : ({
         ...a,
         balance: a.balance - cost,
@@ -323,7 +330,8 @@ export default function MarketPage({
       if (delta <= 0) return
       const { cost, qUp2, qDown2 } = tradeCost(m, 'DOWN', delta)
       if (activeAccount.balance < cost) return alert('残高不足')
-      setProjects((ps) => ps.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } }))))
+      const next = projects.map((p) => (p.id !== pid ? p : ({ ...p, markets: { ...p.markets, [scenario]: { ...m, qUp: qUp2, qDown: qDown2 } } })))
+      persistProjects(next)
       setAccounts((as) => as.map((a) => (a.id !== activeAccount.id ? a : ({
         ...a,
         balance: a.balance - cost,
@@ -346,42 +354,40 @@ export default function MarketPage({
     }
     const [winner] = (Object.entries(snap!) as [ProjectId, number][]).reduce((a, b) => (a[1] >= b[1] ? a : b))
 
-    setProjects((prev) => {
-      const ps = prev.map((p) => ({ ...p, markets: { funded: { ...p.markets.funded }, not_funded: { ...p.markets.not_funded } } }))
-      // winner: Not funded=0
-      const win = ps.find((p) => p.id === winner)!
-      const mNF = win.markets.not_funded
-      const p0 = clamp01((0 - win.rangeMin) / (win.rangeMax - win.rangeMin))
-      const qU0 = qUpForTargetPrice(mNF.qDown, mNF.b, p0)
-      win.markets.not_funded = { ...mNF, qUp: qU0 }
-      // losers: Funded=0
-      ps.forEach((p) => {
-        if (p.id === winner) return
-        const mF = p.markets.funded
-        const p0f = clamp01((0 - p.rangeMin) / (p.rangeMax - p.rangeMin))
-        const qU0f = qUpForTargetPrice(mF.qDown, mF.b, p0f)
-        p.markets.funded = { ...mF, qUp: qU0f }
-      })
-      // ロック
-      setFrozenNot((fn) => ({ ...fn, [winner]: true }))
-      setFrozenFundedZero((ff) => {
-        const next = { ...ff } as Record<ProjectId, boolean>
-          ; (Object.keys(ff) as ProjectId[]).forEach((pid) => { if (pid !== winner) next[pid] = true })
-        return next
-      })
-      // フェーズ & マーカー
-      const t = nowTs()
-      setPhase('decided')
-      setPhaseMarkers((m) => [...m, { t, label: 'Decision' }])
-      // 解決フォーム用
-      const vals: Record<ProjectId, { funded?: number; not_funded?: number }> = { ascoe: {}, civichat: {}, handbook: {}, yadokari: {} }
-      setResolution({ winner, values: vals })
-      // 履歴
-      setImpactHistory((h) => [...h, { t, ...snapshotImpactAbs(ps) } as any])
-      setPerProjectHistory((h) => [...h, snapshotPerProject(ps)])
-      if (selectedProject) setResolutionForm((f) => f)
-      return ps
+    const ps = projects.map((p) => ({ ...p, markets: { funded: { ...p.markets.funded }, not_funded: { ...p.markets.not_funded } } }))
+    // winner: Not funded=0
+    const win = ps.find((p) => p.id === winner)!
+    const mNF = win.markets.not_funded
+    const p0 = clamp01((0 - win.rangeMin) / (win.rangeMax - win.rangeMin))
+    const qU0 = qUpForTargetPrice(mNF.qDown, mNF.b, p0)
+    win.markets.not_funded = { ...mNF, qUp: qU0 }
+    // losers: Funded=0
+    ps.forEach((p) => {
+      if (p.id === winner) return
+      const mF = p.markets.funded
+      const p0f = clamp01((0 - p.rangeMin) / (p.rangeMax - p.rangeMin))
+      const qU0f = qUpForTargetPrice(mF.qDown, mF.b, p0f)
+      p.markets.funded = { ...mF, qUp: qU0f }
     })
+    persistProjects(ps)
+    // ロック
+    setFrozenNot((fn) => ({ ...fn, [winner]: true }))
+    setFrozenFundedZero((ff) => {
+      const next = { ...ff } as Record<ProjectId, boolean>
+        ; (Object.keys(ff) as ProjectId[]).forEach((pid) => { if (pid !== winner) next[pid] = true })
+      return next
+    })
+    // フェーズ & マーカー
+    const t = nowTs()
+    setPhase('decided')
+    setPhaseMarkers((m) => [...m, { t, label: 'Decision' }])
+    // 解決フォーム用
+    const vals: Record<ProjectId, { funded?: number; not_funded?: number }> = { ascoe: {}, civichat: {}, handbook: {}, yadokari: {} }
+    setResolution({ winner, values: vals })
+    // 履歴
+    setImpactHistory((h) => [...h, { t, ...snapshotImpactAbs(ps) } as any])
+    setPerProjectHistory((h) => [...h, snapshotPerProject(ps)])
+    if (selectedProject) setResolutionForm((f) => f)
   }
 
   // ===== ランダム取引シミュレーション =====

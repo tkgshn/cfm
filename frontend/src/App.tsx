@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { InfoIcon } from '@/components/ui/icons'
 import Home from '@/pages/Home'
 import MarketPage from '@/pages/MarketPage'
 import { markets } from '@/lib/markets'
@@ -111,17 +112,20 @@ export default function App() {
               </div>
             )}
           </div>
-          <button className="h-7 px-2 text-xs border rounded hover:bg-gray-50" onClick={() => { setHelpPage(0); setHelpOpen(true) }}>使い方</button>
+          <button className="text-xs inline-flex items-center gap-1 hover:underline" onClick={() => { setHelpPage(0); setHelpOpen(true) }}>
+            <InfoIcon className="h-4 w-4" />
+            <span>使い方</span>
+          </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-600">アカウント</span>
+          <span className="text-xs text-gray-600">残高: <b>{activeAccount?.balance.toFixed(2)}</b> USDC</span>
+          <span className="text-xs text-gray-600">ログイン中のアカウント: </span>
           <select className="h-8 border rounded px-2 text-xs" value={activeAccountId} onChange={(e) => setActiveAccountId(e.target.value)}>
             {accounts.map((a) => (<option key={a.id} value={a.id}>{a.name}{a.isAdmin ? ' 管理者' : ''}</option>))}
           </select>
           {activeAccount?.isAdmin && (
             <span className="text-[10px] font-semibold text-amber-900 bg-amber-200 border border-amber-300 rounded px-2 py-0.5">管理者</span>
           )}
-          <span className="text-xs text-gray-600">残高: <b>{activeAccount?.balance.toFixed(2)}</b> USDC</span>
         </div>
       </div>
     </div>
@@ -153,7 +157,7 @@ export default function App() {
               onClick={() => { if (helpPage === helpPages.length - 1) setHelpOpen(false); else setHelpPage((p) => p + 1) }}
             >
               <button aria-label="閉じる" className="absolute top-2 right-2 text-gray-600 hover:text-black" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>✕</button>
-              <div className="text-xs text-gray-500">クリックで次へ（{helpPage + 1}/{helpPages.length}）</div>
+              <div className="text-xs text-gray-500">{helpPage + 1}/{helpPages.length}</div>
               {helpPages[helpPage]}
               <div className="flex items-center justify-end pt-2 gap-2">
                 <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpPages.length) % helpPages.length) }}>前へ</button>
@@ -177,7 +181,7 @@ export default function App() {
             onClick={() => { if (helpPage === helpPages.length - 1) setHelpOpen(false); else setHelpPage((p) => p + 1) }}
           >
             <button aria-label="閉じる" className="absolute top-2 right-2 text-gray-600 hover:text-black" onClick={(e) => { e.stopPropagation(); setHelpOpen(false) }}>✕</button>
-            <div className="text-xs text-gray-500">クリックで次へ（{helpPage + 1}/{helpPages.length}）</div>
+            <div className="text-xs text-gray-500">{helpPage + 1}/{helpPages.length}</div>
             {helpPages[helpPage]}
             <div className="flex items-center justify-end pt-2 gap-2">
               <button className="h-8 px-3 text-xs border rounded" onClick={(e) => { e.stopPropagation(); setHelpPage((p) => (p - 1 + helpPages.length) % helpPages.length) }}>前へ</button>
