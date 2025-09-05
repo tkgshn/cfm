@@ -78,6 +78,9 @@ export default function MarketPage({
 }) {
   const _ = marketId
   const STORAGE_KEY = `cfm:projects:${marketId}`
+  const HISTORY_IMPACT_KEY = `cfm:impactHistory:${marketId}`
+  const HISTORY_PER_KEY = `cfm:perProjectHistory:${marketId}`
+  const PHASE_MARKERS_KEY = `cfm:phaseMarkers:${marketId}`
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const activeAccount = useMemo(() => accounts.find((a) => a.id === activeAccountId)!, [accounts, activeAccountId])
 
@@ -101,7 +104,10 @@ export default function MarketPage({
   })
   const persistProjects = (next: Project[]) => {
     setProjects(next)
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch {}
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      window.dispatchEvent(new CustomEvent('cfm:projects-updated', { detail: { marketId, projects: next } }))
+    } catch {}
   }
   // 永続化されたプロジェクト状態の復元
   useEffect(() => {
@@ -110,6 +116,21 @@ export default function MarketPage({
       if (raw) {
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed)) setProjects(parsed)
+      }
+      const impRaw = localStorage.getItem(HISTORY_IMPACT_KEY)
+      if (impRaw) {
+        const parsedImp = JSON.parse(impRaw)
+        if (Array.isArray(parsedImp) && parsedImp.length) setImpactHistory(parsedImp)
+      }
+      const perRaw = localStorage.getItem(HISTORY_PER_KEY)
+      if (perRaw) {
+        const parsedPer = JSON.parse(perRaw)
+        if (Array.isArray(parsedPer) && parsedPer.length) setPerProjectHistory(parsedPer)
+      }
+      const mkRaw = localStorage.getItem(PHASE_MARKERS_KEY)
+      if (mkRaw) {
+        const parsedMk = JSON.parse(mkRaw)
+        if (Array.isArray(parsedMk) && parsedMk.length) setPhaseMarkers(parsedMk)
       }
     } catch {}
   }, [STORAGE_KEY])
@@ -180,6 +201,28 @@ export default function MarketPage({
       } catch {}
     }
   }, [projects, STORAGE_KEY])
+
+  // チャート履歴・マーカーの保存
+  useEffect(() => {
+    try { localStorage.setItem(HISTORY_IMPACT_KEY, JSON.stringify(impactHistory)) } catch {}
+  }, [impactHistory, HISTORY_IMPACT_KEY])
+  useEffect(() => {
+    try { localStorage.setItem(HISTORY_PER_KEY, JSON.stringify(perProjectHistory)) } catch {}
+  }, [perProjectHistory, HISTORY_PER_KEY])
+  useEffect(() => {
+    try { localStorage.setItem(PHASE_MARKERS_KEY, JSON.stringify(phaseMarkers)) } catch {}
+  }, [phaseMarkers, PHASE_MARKERS_KEY])
+
+  // アンマウント時にも履歴・マーカーを保存
+  useEffect(() => {
+    return () => {
+      try {
+        localStorage.setItem(HISTORY_IMPACT_KEY, JSON.stringify(impactHistory))
+        localStorage.setItem(HISTORY_PER_KEY, JSON.stringify(perProjectHistory))
+        localStorage.setItem(PHASE_MARKERS_KEY, JSON.stringify(phaseMarkers))
+      } catch {}
+    }
+  }, [impactHistory, perProjectHistory, phaseMarkers, HISTORY_IMPACT_KEY, HISTORY_PER_KEY, PHASE_MARKERS_KEY])
 
   useEffect(() => {
     if (tickerRef.current) window.clearInterval(tickerRef.current)
@@ -460,7 +503,10 @@ export default function MarketPage({
 
     setProjects(ps)
     setAccounts(as)
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ps)) } catch {}
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ps))
+      window.dispatchEvent(new CustomEvent('cfm:projects-updated', { detail: { marketId, projects: ps } }))
+    } catch {}
   }
 
   // ===== すべての取引を初期化 =====
@@ -488,7 +534,16 @@ export default function MarketPage({
     setResolution(null)
     setImpactHistory([{ t: nowTs(), ascoe: 0, civichat: 0, handbook: 0, yadokari: 0 }])
     setPerProjectHistory([snapshotPerProject(resetProjects)])
-    try { localStorage.removeItem(STORAGE_KEY) } catch {}
+    try {
+      // マーケット状態/チャート/アカウント永続データの両方をクリア
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(HISTORY_IMPACT_KEY)
+      localStorage.removeItem(HISTORY_PER_KEY)
+      localStorage.removeItem(PHASE_MARKERS_KEY)
+      localStorage.removeItem('cfm:accounts:v1')
+      // アクティブアカウントは維持しても良いが、初期化の意味合いに合わせて admin に戻す
+      localStorage.setItem('cfm:activeAccountId:v1', 'admin')
+    } catch {}
   }
 
   const adminResolve = () => {

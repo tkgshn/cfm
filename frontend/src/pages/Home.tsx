@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { markets } from '@/lib/markets'
+import type { Project } from '@/lib/types'
 
 // 予測インパクト簡易計算（MarketPage と揃える）
 const impliedValue = (p: number, min: number, max: number) => min + p * (max - min)
@@ -17,6 +18,17 @@ const previewProjects = [
   { id: 'handbook', name: 'お悩みハンドブック', rangeMin: 0, rangeMax: 10000, markets: { funded: { qUp: 0, qDown: 0, b: DEFAULT_B }, not_funded: { qUp: 0, qDown: 0, b: DEFAULT_B } } },
   { id: 'yadokari', name: 'みつもりヤドカリくん', rangeMin: 0, rangeMax: 10000, markets: { funded: { qUp: 0, qDown: 0, b: DEFAULT_B }, not_funded: { qUp: 0, qDown: 0, b: DEFAULT_B } } },
 ]
+
+// マーケットごとの永続化されたプロジェクト状態を読み込み（なければプレビュー初期値）
+const getProjectsForMarket = (marketId: string): Project[] => {
+  try {
+    const raw = localStorage.getItem(`cfm:projects:${marketId}`)
+    if (!raw) return previewProjects as unknown as Project[]
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed) && parsed.length) return parsed as Project[]
+  } catch {}
+  return previewProjects as unknown as Project[]
+}
 
 const calcImpactAbs = (p: any) => {
   const fu = priceUp(p.markets.funded.qUp, p.markets.funded.qDown, p.markets.funded.b)
@@ -46,7 +58,7 @@ export default function Home() {
 
                 {/* プロジェクトごとの予測インパクト（簡易プレビュー） */}
                 <div className="mt-2 divide-y">
-                  {previewProjects.map((p) => {
+                  {getProjectsForMarket(m.id).map((p) => {
                     const impact = calcImpactAbs(p)
                     return (
                       <div key={p.id} className="py-2 flex items-center justify-between">

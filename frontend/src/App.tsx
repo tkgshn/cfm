@@ -4,7 +4,7 @@ import Home from '@/pages/Home'
 import MarketPage from '@/pages/MarketPage'
 import Portfolio from '@/pages/Portfolio'
 import { markets } from '@/lib/markets'
-import type { Account, BaseHoldings, Holdings } from '@/lib/types'
+import type { Account, BaseHoldings, Holdings, ProjectId } from '@/lib/types'
 
 type Route = { name: 'home' } | { name: 'market'; id: string } | { name: 'portfolio' }
 
@@ -38,11 +38,116 @@ export default function App() {
   ])
   const [activeAccountId, setActiveAccountId] = useState<string>('admin')
   const activeAccount = useMemo(() => accounts.find(a => a.id === activeAccountId)!, [accounts, activeAccountId])
+  // アカウントの永続化
+  const ACCOUNTS_KEY = 'cfm:accounts:v1'
+  const ACTIVE_ID_KEY = 'cfm:activeAccountId:v1'
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ACCOUNTS_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length) setAccounts(parsed)
+      }
+      const aid = localStorage.getItem(ACTIVE_ID_KEY)
+      if (aid) setActiveAccountId(aid)
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try {
+      localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts))
+      localStorage.setItem(ACTIVE_ID_KEY, activeAccountId)
+    } catch {}
+  }, [accounts, activeAccountId])
   useEffect(() => {
     const onHash = () => setRoute(parseHash())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+
+  // ===== 総資産（ポジション即時売却想定）の時価評価 =====
+  const lmsrCost = (qUp: number, qDown: number, b: number) => b * Math.log(Math.exp((qUp || 0) / (b || 180)) + Math.exp((qDown || 0) / (b || 180)))
+  const priceUp = (qUp: number, qDown: number, b: number) => {
+    const eU = Math.exp((qUp || 0) / (b || 180))
+    const eD = Math.exp((qDown || 0) / (b || 180))
+    return eU / (eU + eD)
+  }
+  const [projectsVersion, setProjectsVersion] = useState(0)
+  useEffect(() => {
+    const onProjects = () => setProjectsVersion(v => v + 1)
+    window.addEventListener('cfm:projects-updated', onProjects as any)
+    return () => window.removeEventListener('cfm:projects-updated', onProjects as any)
+  }, [])
+  const activeMarketId = route.name === 'market' ? route.id : 'default'
+  const totalAssets = useMemo(() => {
+    const a = activeAccount
+    if (!a) return 0
+    let total = a.balance
+    let projects: any[] = []
+    try {
+      const raw = localStorage.getItem(`cfm:projects:${activeMarketId}`)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) projects = parsed
+      }
+    } catch {}
+    const findP = (pid: string) => projects.find((p) => p.id === pid)
+    const pids: ProjectId[] = ['ascoe', 'civichat', 'handbook', 'yadokari']
+    for (const pid of pids) {
+      const p = findP(pid)
+      // funded マーケットの売却想定
+      if (p?.markets?.funded) {
+        let qU = p.markets.funded.qUp || 0
+        let qD = p.markets.funded.qDown || 0
+        const b = p.markets.funded.b || 180
+        const sellUp = a.holdings[pid].funded.UP
+        if (sellUp > 0) {
+          const pre = lmsrCost(qU, qD, b)
+          const qU2 = qU - sellUp
+          const post = lmsrCost(qU2, qD, b)
+          total += pre - post
+          qU = qU2
+        }
+        const sellDown = a.holdings[pid].funded.DOWN
+        if (sellDown > 0) {
+          const pre = lmsrCost(qU, qD, b)
+          const qD2 = qD - sellDown
+          const post = lmsrCost(qU, qD2, b)
+          total += pre - post
+          qD = qD2
+        }
+      } else {
+        const pUpF = 0.5
+        total += a.holdings[pid].funded.UP * pUpF
+        total += a.holdings[pid].funded.DOWN * (1 - pUpF)
+      }
+      // not_funded マーケットの売却想定
+      if (p?.markets?.not_funded) {
+        let qU = p.markets.not_funded.qUp || 0
+        let qD = p.markets.not_funded.qDown || 0
+        const b = p.markets.not_funded.b || 180
+        const sellUp = a.holdings[pid].not_funded.UP
+        if (sellUp > 0) {
+          const pre = lmsrCost(qU, qD, b)
+          const qU2 = qU - sellUp
+          const post = lmsrCost(qU2, qD, b)
+          total += pre - post
+          qU = qU2
+        }
+        const sellDown = a.holdings[pid].not_funded.DOWN
+        if (sellDown > 0) {
+          const pre = lmsrCost(qU, qD, b)
+          const qD2 = qD - sellDown
+          const post = lmsrCost(qU, qD2, b)
+          total += pre - post
+        }
+      } else {
+        const pUpN = 0.5
+        total += a.holdings[pid].not_funded.UP * pUpN
+        total += a.holdings[pid].not_funded.DOWN * (1 - pUpN)
+      }
+    }
+    return total
+  }, [activeAccount, activeMarketId, projectsVersion])
 
   // 使い方モーダル（ヘッダーから常時開ける）
   const [helpOpen, setHelpOpen] = useState(false)
@@ -120,6 +225,7 @@ export default function App() {
           </button>
         </div>
         <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-600">総資産: <a className="underline font-semibold" href="#portfolio">{totalAssets.toFixed(2)}</a> USDC</span>
           <span className="text-xs text-gray-600">残高: <a className="underline font-semibold" href="#portfolio">{activeAccount?.balance.toFixed(2)}</a> USDC</span>
           <span className="text-xs text-gray-600"></span>
           <select className="h-8 border rounded px-2 text-xs" value={activeAccountId} onChange={(e) => setActiveAccountId(e.target.value)}>
