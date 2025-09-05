@@ -81,4 +81,3 @@
 - 主要なロジックは `frontend/src/pages/MarketPage.tsx` にあります（LMSR 関数、取引UI、履歴、管理者処理など）。
 - 市場メタデータは `frontend/src/lib/markets.ts`。ホームのカードは `frontend/src/pages/Home.tsx`。
 - ポートフォリオは `frontend/src/pages/Portfolio.tsx`。保有一覧カードは `frontend/src/components/UserPositionsAllCard.tsx`。
-
