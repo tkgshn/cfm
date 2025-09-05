@@ -14,9 +14,8 @@ CFM フロントエンド概要ドキュメント
 - Node.js 16 でビルド・起動可能（より新しい環境でも可）
 
 主要ディレクトリ / ファイル
-- `frontend/src/App.tsx`: 主要な UI/ロジックが集約されたエントリ。
+- `frontend/src/App.tsx`: 主要な UI/ロジックが集約されたエントリ（正とする実装）。
 - `frontend/src/components/ui/`: 最小実装の UI コンポーネント（`button`, `card`, `input`）。
-- `frontend/src/legacy/original-index.ts`: 旧 UI ロジックの参考ソース（JSXが壊れているためビルド対象外）。
 - `frontend/vite.config.ts`, `frontend/tsconfig*.json`: ビルド設定。
 
 用語

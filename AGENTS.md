@@ -1,38 +1,43 @@
 # Repository Guidelines
 
+本リポジトリは、LMSR を用いた CFM プロトタイプの中核ロジックと UI を提供します。単体のビルド設定は含まず、既存の React/Next.js/Vite プロジェクトへ組み込んで利用してください。
+
 ## Project Structure & Module Organization
-- ルート直下に `index.ts`（React/TypeScript、LMSRベースCFMプロトタイプ）。
-- テスト・ビルド設定・依存定義は未同梱。既存の React/Next.js/Vite プロジェクトへ組み込んで利用してください。
-- 例: Next.js の場合は `app/page.tsx` へ移設（JSXを含むため拡張子は `.tsx` を推奨）。Vite は `src/App.tsx` へ配置。
+- 本実装のエントリは `frontend/src/App.tsx`（React/TypeScript、LMSR ベース CFM）。
+- 本リポジトリ単体で Vite プロジェクトとして起動可能です（`frontend/`）。
+- 既存プロジェクトへ組み込む場合は `App.tsx` のロジックを分割移植してください（JSX を含むため `.tsx` 推奨）。
+- テスト/アセットは統合先プロジェクトの規約に従い配置。
 
 ## Build, Test, and Development Commands
-- Next.js/Vite に組み込んだ前提の例（`pnpm`想定）:
-  - `pnpm dev`: 開発サーバー起動。
-  - `pnpm build`: 本番ビルド。
-  - `pnpm lint`: ESLint による静的解析。
-  - `pnpm format`: Prettier による整形。
+前提: 統合先で `pnpm` を利用。
+- `pnpm dev`: 開発サーバーを起動。
+- `pnpm build`: 本番ビルドを生成。
+- `pnpm lint`: ESLint による静的解析を実行。
+- `pnpm format`: Prettier でコード整形。
+- `pnpm test --watch`: テストの監視実行。
 
 ## Coding Style & Naming Conventions
-- 言語: TypeScript + React Hooks。インデント2スペース。
-- 命名: 型/インターフェースはPascalCase（例: `ProjectId`）、変数・関数はcamelCase（例: `applyTarget`）。
-- フォーマット: Prettier、リンタ: ESLint（`react-hooks` ルール推奨）。
-- ファイル: JSXを含む場合は拡張子`.tsx`。
+- 言語: TypeScript + React Hooks、インデントは 2 スペース。
+- 命名: 型/インターフェース=PascalCase（例: `ProjectId`）、変数/関数=camelCase（例: `applyTarget`）。
+- フォーマット: Prettier。リンタ: ESLint（`react-hooks` ルール推奨）。
+- JSX を含むファイルは `.tsx` を使用。
 
 ## Testing Guidelines
 - 推奨: Vitest/Jest + React Testing Library。
-- 命名: コンポーネント/ユーティリティに対応した `*.test.ts(x)`。
-- 実行例: `pnpm test --watch`。カバレッジ目安: 主要ロジック（LMSR計算・トレード/解決処理）を優先的に網羅。
+- 命名: 対象に対応した `*.test.ts(x)`。
+- カバレッジ目安: LMSR 計算（`lmsrCost`/`priceUp`/`tradeCost`）、トレード/解決/清算フローを優先。
+- 実行例: `pnpm test --watch`。
 
 ## Commit & Pull Request Guidelines
-- コミット: Conventional Commits（例: `feat: add admin resolution flow`）。
-- PR: 目的・変更点の要約、スクリーンショット（UI変更時）、再現手順、関連Issueのリンクを記載。
-- レビュー観点: 状態管理の整合性、価格/原価計算（LMSR）の正当性、UI操作の可観測性（履歴・グラフ）。
+- コミット: Conventional Commits。例: `feat: add admin resolution flow`、`fix: correct lmsr price rounding`。
+- PR: 目的・変更点の要約、スクリーンショット（UI変更時）、再現手順、関連 Issue を記載。
+- レビュー観点: 状態管理の整合性、価格/原価（LMSR）計算の正当性、UI 操作の可観測性（履歴・グラフ）。
 
 ## Architecture Overview
-- 中核: LMSR計算（`lmsrCost`/`priceUp`/`tradeCost`）、シナリオ別市場（`funded`/`not_funded`）。
+- 中核: LMSR 計算（`lmsrCost`/`priceUp`/`tradeCost`）、市場シナリオ（`funded`/`not_funded`）。
 - 状態: `projects`/`accounts`/`phase` と履歴タイムライン、管理者操作（確定/解決/清算）。
-- 可視化: Recharts によるインパクト・個別チャート、UIは shadcn/ui 互換コンポーネントを想定（`@/components/ui/*`）。
+- 可視化: Recharts、UI は shadcn/ui 互換（`@/components/ui/*`）。
 
 ## Security & Configuration Tips
-- 機密値・鍵は不要。数値計算はクライアント内で完結。
-- 別環境へ組み込む際は `@` パスエイリアスを各ツールに合わせて設定してください（Vite/TSconfig/Next.js）。
+- 機密値や鍵は不要。数値計算はクライアント内で完結。
+- パスエイリアス `@` を各ツールに合わせて設定（Vite/TSconfig/Next.js）。

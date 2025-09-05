@@ -281,7 +281,7 @@ export default function App() {
     const fundedCurrent = active ? impliedValue(priceUp(active.markets.funded.qUp, active.markets.funded.qDown, active.markets.funded.b), active.rangeMin, active.rangeMax) : 5000;
     const notCurrent = active ? impliedValue(priceUp(active.markets.not_funded.qUp, active.markets.not_funded.qDown, active.markets.not_funded.b), active.rangeMin, active.rangeMax) : 5000;
 
-    const adminOptions = useMemo(() => impactHistory.map((h, i) => ({ idx: i, label: `${i}: ${new Date(h.t).toLocaleTimeString()}` })), [impactHistory]);
+    const adminOptions = useMemo(() => impactHistory.map((h, i) => ({ idx: i, label: `${i}: ${new Date(h.t).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}` })), [impactHistory]);
     const [adminIdx, setAdminIdx] = useState<number>(-1);
 
     const fmtMaybe = (val: number, hide: boolean) => hide ? "-" : val.toFixed(2);
@@ -338,9 +338,9 @@ export default function App() {
             <ResponsiveContainer width="100%" height = "100%" >
                 <LineChart data={ impactChartData } margin = {{ left: 8, right: 16, top: 8, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="t" type = "number" domain = { ["dataMin", "dataMax"]} tickFormatter = {(t)=> new Date(t).toLocaleTimeString()} />
+                        <XAxis dataKey="t" type = "number" domain = { ["dataMin", "dataMax"]} tickFormatter = {(t)=> new Date(Number(t)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} />
                             < YAxis tick = {{ fontSize: 12 }} label = {{ value: "Forecasted Impact", angle: -90, position: "insideLeft" }} />
-                                < Tooltip formatter = {(v: number) => v.toFixed(2)} labelFormatter = {(t)=> new Date(Number(t)).toLocaleTimeString()} />
+                                < Tooltip formatter = {(v: number) => v.toFixed(2)} labelFormatter = {(t)=> new Date(Number(t)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} />
                                     < Legend />
                                     { phaseMarkers.map((m, i) => (<ReferenceLine key= { i } x = { m.t } stroke = "#666" strokeDasharray = "4 2" label = {{ position: 'top', value: m.label }} />))}
 <Line type="monotone" dataKey = "ascoe" name = "アスコエ" stroke = { colors["アスコエ"]} dot = { false} strokeWidth = { 2} />
@@ -372,9 +372,9 @@ export default function App() {
                                             <LineChart data={ data } margin = {{ left: 8, right: 16, top: 8, bottom: 8 }
     }>
     <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="t" type = "number" domain = { ["dataMin", "dataMax"]} tickFormatter = {(t)=> new Date(t).toLocaleTimeString()} />
+    <XAxis dataKey="t" type = "number" domain = { ["dataMin", "dataMax"]} tickFormatter = {(t)=> new Date(Number(t)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} />
     < YAxis tick = {{ fontSize: 11 }} label = {{ value: "予想申請数", angle: -90, position: "insideLeft" }} />
-    < Tooltip formatter = {(v: number) => v.toFixed(2)} labelFormatter = {(t)=> new Date(Number(t)).toLocaleTimeString()} />
+    < Tooltip formatter = {(v: number) => v.toFixed(2)} labelFormatter = {(t)=> new Date(Number(t)).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} />
                           { phaseMarkers.map((m, i) => (<ReferenceLine key= { i } x = { m.t } stroke = "#92c5de" strokeDasharray = "2 2" />))}
 <Line type="monotone" dataKey = "Funded" stroke = { colors.Funded } dot = { false} strokeWidth = { 2} />
     <Line type="monotone" dataKey = "NotFunded" stroke = { colors.NotFunded } dot = { false} strokeWidth = { 2} />
@@ -399,8 +399,8 @@ export default function App() {
                     <thead>
                     <tr className="text-left text-gray-500" >
                         <th className="p-2" > プロジェクト </th>
-                            < th className = "p-2" > 1億円投資の予想 </th>
-                                < th className = "p-2" > 非投資の予想 </th>
+                            < th className = "p-2" > 1億円を投資された場合の申請数予想 </th>
+                                < th className = "p-2" > 投資されなかった場合（通常通り）の申請数予想 </th>
                                     < th className = "p-2" > Forecasted Impact </th>
                                         < th className = "p-2" > 価格(Funded UP / DOWN) </th>
                                             < th className = "p-2" > 価格(Not UP / DOWN) </th>
